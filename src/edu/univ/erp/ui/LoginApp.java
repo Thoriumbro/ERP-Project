@@ -1,8 +1,12 @@
 package edu.univ.erp.ui;
 
 import javax.swing.*;
+import edu.univ.erp.data.DBConnection;
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 public class LoginApp extends JFrame {
     JTextField usernameField;
@@ -30,9 +34,30 @@ public class LoginApp extends JFrame {
         add(loginButton);
         add(messageLabel);
 
+        // Fixed action listener syntax
         loginButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 checkLogin();
+                try {
+                    Connection conn = DBConnection.getAuthConnection();
+                    String sql = "SELECT role FROM users_auth WHERE username=? AND password_hash=?";
+                    PreparedStatement ps = conn.prepareStatement(sql);
+                    ps.setString(1, usernameField.getText());
+                    ps.setString(2, new String(passwordField.getPassword()));
+                    ResultSet rs = ps.executeQuery();
+
+                    if (rs.next()) {
+                        String role = rs.getString("role");
+                        JOptionPane.showMessageDialog(null, "Login successful as " + role);
+                        // open respective dashboard here
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Invalid username or password");
+                    }
+
+                    conn.close();
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, "Database error: " + ex.getMessage());
+                }
             }
         });
 
