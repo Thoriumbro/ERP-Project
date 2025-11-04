@@ -37,7 +37,6 @@ public class LoginApp extends JFrame {
         // Fixed action listener syntax
         loginButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                checkLogin();
                 try {
                     Connection conn = DBConnection.getAuthConnection();
                     String sql = "SELECT role FROM users WHERE username=? AND password=?";
@@ -49,7 +48,15 @@ public class LoginApp extends JFrame {
                     if (rs.next()) {
                         String role = rs.getString("role");
                         JOptionPane.showMessageDialog(null, "Login successful as " + role);
-                        // open respective dashboard here
+                        
+                         if (role.equalsIgnoreCase("admin")) {
+                            new AdminDashboard();  // open admin dashboard
+                        } else if (role.equalsIgnoreCase("instructor")) {
+                            new InstructorDashboard();
+                        } else if (role.equalsIgnoreCase("student")) {
+                            new StudentDashboard();
+                        }
+                                            // open respective dashboard here
                     } else {
                         JOptionPane.showMessageDialog(null, "Invalid username or password");
                     }
@@ -62,19 +69,6 @@ public class LoginApp extends JFrame {
         });
 
         setVisible(true);
-    }
-
-    void checkLogin() {
-        String username = usernameField.getText();
-        String password = new String(passwordField.getPassword());
-
-        // temporary hardcoded users
-        if (username.equals("admin") && password.equals("admin123")) {
-            messageLabel.setText("Login successful (admin)");
-        }
-        else {
-            messageLabel.setText("Invalid username or password");
-        }
     }
 
     public static void main(String[] args) {

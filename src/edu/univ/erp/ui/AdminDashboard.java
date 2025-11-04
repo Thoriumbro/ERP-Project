@@ -15,7 +15,4 @@ public class AdminDashboard extends JFrame {
 
         setVisible(true);
     }
-    public static void main(String[] args) {
-        new AdminDashboard(); // runs dashboard directly
-    }
 }
