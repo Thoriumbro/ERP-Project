@@ -40,7 +40,7 @@ public class LoginApp extends JFrame {
                 checkLogin();
                 try {
                     Connection conn = DBConnection.getAuthConnection();
-                    String sql = "SELECT role FROM users_auth WHERE username=? AND password_hash=?";
+                    String sql = "SELECT role FROM users WHERE username=? AND password=?";
                     PreparedStatement ps = conn.prepareStatement(sql);
                     ps.setString(1, usernameField.getText());
                     ps.setString(2, new String(passwordField.getPassword()));
@@ -69,13 +69,10 @@ public class LoginApp extends JFrame {
         String password = new String(passwordField.getPassword());
 
         // temporary hardcoded users
-        if (username.equals("admin1") && password.equals("admin123")) {
+        if (username.equals("admin") && password.equals("admin123")) {
             messageLabel.setText("Login successful (admin)");
-        } else if (username.equals("inst1") && password.equals("inst123")) {
-            messageLabel.setText("Login successful (instructor)");
-        } else if (username.equals("stu1") && password.equals("stu123")) {
-            messageLabel.setText("Login successful (student)");
-        } else {
+        }
+        else {
             messageLabel.setText("Invalid username or password");
         }
     }
