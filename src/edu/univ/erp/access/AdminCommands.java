@@ -37,7 +37,7 @@ public class AdminCommands {
     }
 
     public boolean addCourse(String code, String title, int credits) {
-        try (Connection conn = DBConnection.getAuthConnection();
+        try (Connection conn = DBConnection.getErpConnection();
             PreparedStatement stmt = conn.prepareStatement(Query.insertCourse("courses"))) {
 
             stmt.setString(1, code);
@@ -57,7 +57,7 @@ public class AdminCommands {
 
         String sql = "UPDATE courses SET " + field + " = ? WHERE code = ?";
 
-        try (Connection conn = DBConnection.getAuthConnection();
+        try (Connection conn = DBConnection.getErpConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setObject(1, newValue);
@@ -73,7 +73,7 @@ public class AdminCommands {
 
 
     public boolean addSection(int course_id, int instructor_id, int credits, String day_time, String room, int capacity, String semester, int year) {
-        try (Connection conn = DBConnection.getAuthConnection();
+        try (Connection conn = DBConnection.getErpConnection();
             PreparedStatement stmt = conn.prepareStatement(Query.insertSection("sections"))) {
 
             stmt.setInt(1, course_id);
@@ -99,7 +99,7 @@ public class AdminCommands {
 
         String sql = "UPDATE sections SET " + field + " = ? WHERE section_id = ?";
 
-        try (Connection conn = DBConnection.getAuthConnection();
+        try (Connection conn = DBConnection.getErpConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setObject(1, newValue);
