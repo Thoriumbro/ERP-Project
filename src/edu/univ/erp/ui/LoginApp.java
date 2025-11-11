@@ -49,13 +49,17 @@ public class LoginApp extends JFrame {
                         String role = rs.getString("role");
                         JOptionPane.showMessageDialog(null, "Login successful as " + role);
                         
-                         if (role.equalsIgnoreCase("admin")) {
-                            new AdminDashboard();  // open admin dashboard
+                        if (role.equalsIgnoreCase("admin")) {
+                            dispose();
+                            new AdminDashboard();
                         } else if (role.equalsIgnoreCase("instructor")) {
+                            dispose();
                             new InstructorDashboard();
                         } else if (role.equalsIgnoreCase("student")) {
-                            new StudentDashboard();
+                            dispose();
+                            new StudentDashboard(usernameField.getText());
                         }
+
                                             // open respective dashboard here
                     } else {
                         JOptionPane.showMessageDialog(null, "Invalid username or password");

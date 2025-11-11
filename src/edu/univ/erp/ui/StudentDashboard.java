@@ -1,12 +1,43 @@
 package edu.univ.erp.ui;
 
 import javax.swing.*;
+
+import edu.univ.erp.access.StudentCommands;
 import java.awt.*;
+import edu.univ.erp.data.DBConnection;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.awt.event.*;
+import java.sql.ResultSet;
 
 public class StudentDashboard extends JFrame {
 
-    public StudentDashboard() {
+    public int getStudentIdByUsername(String username) {
+        String query = "SELECT s.user_id FROM students s " +
+                    "JOIN auth_db.users u ON s.user_id = u.id " +
+                    "WHERE u.username = ?";
+
+        try (Connection conn = DBConnection.getErpConnection();
+            PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("user_id");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return -1; // not found
+    }
+
+
+    private StudentCommands sc = new StudentCommands();
+    private int studentId;
+    public StudentDashboard(String Username) {
+        this.studentId = getStudentIdByUsername(Username);
+
         setTitle("Student Dashboard");
         setSize(700, 500);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -40,36 +71,66 @@ public class StudentDashboard extends JFrame {
         add(buttonPanel, BorderLayout.CENTER);
 
         // Button actions
-        viewCoursesBtn.addActionListener(e ->
-            JOptionPane.showMessageDialog(this, "Showing available courses...")
-        );
+        viewCoursesBtn.addActionListener(e -> {
+            JOptionPane.showMessageDialog(this, "Showing available courses...");
+            ResultSet rs = sc.browseCatalog();
+            if (rs != null) {
+                TablePopup.showResultSet(rs, "Available Courses");
+            } else {
+                JOptionPane.showMessageDialog(this, "No courses found.");
+            }
+        });
 
-        enrollBtn.addActionListener(e ->
-            JOptionPane.showMessageDialog(this, "Enroll in a selected course...")
-        );
+        enrollBtn.addActionListener(e -> {
+            String secId = JOptionPane.showInputDialog(this, "Enter Section ID to enroll:");
+            if (secId != null) {
+                boolean ok = sc.registerForSection(studentId, Integer.parseInt(secId));
+                JOptionPane.showMessageDialog(this, ok ? "Enrolled!" : "Failed to enroll.");
+            }
+        });
 
-        myCoursesBtn.addActionListener(e ->
-            JOptionPane.showMessageDialog(this, "Showing your enrolled courses...")
-        );
+        myCoursesBtn.addActionListener(e -> {
+            ResultSet rs = sc.viewTimetable(studentId);
+            if (rs != null) {
+                TablePopup.showResultSet(rs, "My Timetable");
+            } else {
+                JOptionPane.showMessageDialog(this, "No enrolled courses found.");
+            }
+        });
 
-        gradesBtn.addActionListener(e ->
-            JOptionPane.showMessageDialog(this, "Showing your grades...")
-        );
+        gradesBtn.addActionListener(e -> {
+        System.out.println("Student ID: " + studentId); // debug
+        ResultSet rs = sc.viewGrades(studentId);
 
-        profileBtn.addActionListener(e ->
-            JOptionPane.showMessageDialog(this, "Showing student profile...")
-        );
+        if (rs != null) {
+            TablePopup.showResultSet(rs, "My Grades");
+        } else {
+            JOptionPane.showMessageDialog(this, "No grades available.");
+        }
+    });
+
+
+        // profileBtn.addActionListener(e -> {
+        //     JOptionPane.showMessageDialog(this, "Showing student profile...");
+        //     ResultSet rs = sc.viewProfile(studentId);
+        //     if (rs != null) {
+        //         TablePopup.showResultSet(rs, "Profile");
+        //     } else {
+        //         JOptionPane.showMessageDialog(this, "Profile not found.");
+        //     }
+        // });
+
 
         logoutBtn.addActionListener(e -> {
             JOptionPane.showMessageDialog(this, "Logging out...");
             dispose();
-            new LoginApp(); // return to login screen
+            new LoginApp();
         });
 
         setVisible(true);
     }
 
-    public static void main(String[] args) {
-        new StudentDashboard();
-    }
+    // public static void main(String[] args) {
+    //     new StudentDashboard();
+    // }
 }
