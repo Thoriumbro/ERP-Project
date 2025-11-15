@@ -60,11 +60,11 @@ public class AdminDashboard extends JFrame {
             boolean ok = admin.addStudent(u, p, r, prog, year);
             JOptionPane.showMessageDialog(this, ok ? "Student added" : "Failed");
         });
-
+        
         addInstructorBtn.addActionListener(e -> {
             String u = JOptionPane.showInputDialog("Username:");
-            String p = JOptionPane.showInputDialog("Password:");
             String n = JOptionPane.showInputDialog("Name:");
+            String p = JOptionPane.showInputDialog("Password:");
             String d = JOptionPane.showInputDialog("Department:");
             boolean ok = admin.addInstructor(u, p, n, d);
             JOptionPane.showMessageDialog(this, ok ? "Instructor added" : "Failed");
