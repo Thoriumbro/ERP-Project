@@ -59,8 +59,6 @@ public class LoginApp extends JFrame {
                             dispose();
                             new StudentDashboard(usernameField.getText());
                         }
-
-                                            // open respective dashboard here
                     } else {
                         JOptionPane.showMessageDialog(null, "Invalid username or password");
                     }
