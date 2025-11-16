@@ -9,34 +9,114 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 public class LoginApp extends JFrame {
+
     JTextField usernameField;
     JPasswordField passwordField;
     JButton loginButton;
-    JLabel messageLabel;
 
     public LoginApp() {
-        setTitle("University ERP - Login");
-        setSize(1000, 750);
-        setLayout(new GridLayout(4, 2, 10, 10));
+
+        setTitle("Login");
+        setSize(380, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        setResizable(false);
 
-        add(new JLabel("Username:"));
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBackground(new Color(230, 240, 236));
+
+        // ---------------- TOP ----------------
+        JPanel topPanel = new JPanel();
+        topPanel.setPreferredSize(new Dimension(380, 230));
+        topPanel.setBackground(Color.WHITE);
+        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+
+        topPanel.add(Box.createVerticalStrut(25));
+
+        JLabel logo = new JLabel("\u263A", SwingConstants.CENTER);
+        logo.setFont(new Font("Serif", Font.BOLD, 60));
+        logo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        topPanel.add(logo);
+
+        topPanel.add(Box.createVerticalStrut(10));
+
+        JLabel company = new JLabel("Welcome to ERP");
+        company.setAlignmentX(Component.CENTER_ALIGNMENT);
+        company.setFont(new Font("SansSerif", Font.BOLD, 16));
+        company.setForeground(new Color(30, 80, 60));
+        topPanel.add(company);
+
+        topPanel.add(Box.createVerticalStrut(20));
+
+        // ---------------- CENTER ----------------
+        JPanel centerPanel = new JPanel();
+        centerPanel.setOpaque(false);
+        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+        centerPanel.add(Box.createVerticalStrut(30));
+
+        JLabel loginText = new JLabel("Login");
+        loginText.setAlignmentX(Component.CENTER_ALIGNMENT);
+        loginText.setFont(new Font("SansSerif", Font.BOLD, 26));
+        loginText.setForeground(new Color(40, 70, 60));
+        centerPanel.add(loginText);
+
+        JLabel subText = new JLabel("Sign in to continue");
+        subText.setAlignmentX(Component.CENTER_ALIGNMENT);
+        subText.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        subText.setForeground(new Color(70, 100, 90));
+        centerPanel.add(subText);
+
+        centerPanel.add(Box.createVerticalStrut(25));
+
+        // ---------------- USERNAME ----------------
+        JLabel nameLabel = new JLabel("Name");
+        nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        nameLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        nameLabel.setForeground(new Color(40, 70, 60));
+        centerPanel.add(nameLabel);
+
+        centerPanel.add(Box.createVerticalStrut(5));
+
         usernameField = new JTextField();
-        add(usernameField);
+        styleTextField(usernameField);
+        usernameField.setAlignmentX(Component.CENTER_ALIGNMENT);
+        centerPanel.add(usernameField);
 
-        add(new JLabel("Password:"));
+        centerPanel.add(Box.createVerticalStrut(15));
+
+        // ---------------- PASSWORD ----------------
+        JLabel passLabel = new JLabel("Password");
+        passLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        passLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        passLabel.setForeground(new Color(40, 70, 60));
+        centerPanel.add(passLabel);
+
+        centerPanel.add(Box.createVerticalStrut(5));
+
         passwordField = new JPasswordField();
-        add(passwordField);
+        styleTextField(passwordField);
+        passwordField.setAlignmentX(Component.CENTER_ALIGNMENT);
+        centerPanel.add(passwordField);
 
-        loginButton = new JButton("Login");
-        messageLabel = new JLabel("");
-        add(loginButton);
-        add(messageLabel);
+        centerPanel.add(Box.createVerticalStrut(20));
 
-        // Fixed action listener syntax
+        // ---------------- LOGIN BUTTON ----------------
+        loginButton = new JButton("Log In");
+        styleButton(loginButton);
+        loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        centerPanel.add(loginButton);
+
+        // ---------------- Bottom ----------------
+        centerPanel.add(Box.createVerticalStrut(25));
+
+        mainPanel.add(topPanel, BorderLayout.NORTH);
+        mainPanel.add(centerPanel, BorderLayout.CENTER);
+        add(mainPanel);
+
+        // ---------------- ACTION LISTENER ----------------
         loginButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+
                 try {
                     Connection conn = DBConnection.getAuthConnection();
                     String sql = "SELECT role FROM users WHERE username=? AND password=?";
@@ -48,22 +128,22 @@ public class LoginApp extends JFrame {
                     if (rs.next()) {
                         String role = rs.getString("role");
                         JOptionPane.showMessageDialog(null, "Login successful as " + role);
-                        
+
+                        dispose();
                         if (role.equalsIgnoreCase("admin")) {
-                            dispose();
                             new AdminDashboard();
                         } else if (role.equalsIgnoreCase("instructor")) {
-                            dispose();
                             new InstructorDashboard(usernameField.getText());
-                        } else if (role.equalsIgnoreCase("student")) {
-                            dispose();
+                        } else {
                             new StudentDashboard(usernameField.getText());
                         }
+
                     } else {
                         JOptionPane.showMessageDialog(null, "Invalid username or password");
                     }
 
                     conn.close();
+
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(null, "Database error: " + ex.getMessage());
                 }
@@ -72,6 +152,28 @@ public class LoginApp extends JFrame {
 
         setVisible(true);
     }
+
+
+    // -------- Styling helpers --------
+
+    private void styleTextField(JTextField field) {
+        field.setMaximumSize(new Dimension(260, 40));
+        field.setBackground(new Color(160, 200, 180));
+        field.setForeground(Color.WHITE);
+        field.setCaretColor(Color.WHITE);
+        field.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        field.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+    }
+
+    private void styleButton(JButton btn) {
+        btn.setMaximumSize(new Dimension(260, 40));
+        btn.setBackground(new Color(40, 90, 70));
+        btn.setForeground(Color.WHITE);
+        btn.setFont(new Font("SansSerif", Font.BOLD, 15));
+        btn.setFocusPainted(false);
+        btn.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+    }
+
 
     public static void main(String[] args) {
         new LoginApp();
