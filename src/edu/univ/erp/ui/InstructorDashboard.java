@@ -1,13 +1,43 @@
 package edu.univ.erp.ui;
 
 import edu.univ.erp.access.InstructorCommands;
+import edu.univ.erp.data.DBConnection;
+
 import javax.swing.*;
 import java.awt.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.*;
 
 public class InstructorDashboard extends JFrame {
 
-    public InstructorDashboard() {
+    public int getInstructorIdByUsername(String username) {
+        String query = "SELECT i.user_id FROM instructors i " +
+                    "JOIN auth_db.users u ON i.user_id = u.id " +
+                    "WHERE u.username = ?";
+
+        try (Connection conn = DBConnection.getErpConnection();
+            PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("user_id");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return -1; // not found
+    }
+
+    InstructorCommands instructor = new InstructorCommands();
+    private int InstructorId;
+
+    public InstructorDashboard (String Username) {
+        this.InstructorId = getInstructorIdByUsername(Username);
+
         setTitle("Instructor Dashboard");
         setSize(600, 450);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -19,8 +49,6 @@ public class InstructorDashboard extends JFrame {
         head.setHorizontalAlignment(SwingConstants.CENTER);
         head.setFont(new Font("Arial", Font.BOLD, 22));
         add(head, BorderLayout.NORTH);
-
-        InstructorCommands instructor = new InstructorCommands();
 
         // Buttons
         JButton viewSectionsBtn = new JButton("View My Sections");
@@ -39,13 +67,39 @@ public class InstructorDashboard extends JFrame {
 
         // View My Sections
         viewSectionsBtn.addActionListener(e -> {
-            int id = Integer.parseInt(JOptionPane.showInputDialog("Enter Instructor ID:"));
+            int id = InstructorId;
+
             String sem = JOptionPane.showInputDialog("Enter Semester:");
-            int year = Integer.parseInt(JOptionPane.showInputDialog("Enter Year:"));
-            java.util.List<Integer> list = instructor.getMySections(id, sem, year);
-            JOptionPane.showMessageDialog(this,
-                    list.isEmpty() ? "No sections found." : "Your Sections: " + list.toString());
+            if (sem == null || sem.isEmpty()) return;
+
+            String yearStr = JOptionPane.showInputDialog("Enter Year:");
+            if (yearStr == null || yearStr.isEmpty()) return;
+
+            int year = Integer.parseInt(yearStr);
+
+            ResultSet rs = instructor.getMySections(id, sem, year);
+
+            if (rs == null) {
+                JOptionPane.showMessageDialog(this, "No sections found.");
+                return;
+            }
+
+            boolean hasRow = false;
+
+            try {
+                if (rs.next()) hasRow = true;
+            } catch (Exception ignored) {}
+
+            if (!hasRow) {
+                JOptionPane.showMessageDialog(this, "No sections found.");
+                return;
+            }
+
+            // Show fresh ResultSet so cursor starts at the beginning
+            TablePopup.showResultSet(instructor.getMySections(id, sem, year), "My Sections");
         });
+
+
 
         // Save Student Score
         saveScoreBtn.addActionListener(e -> {
@@ -90,7 +144,7 @@ public class InstructorDashboard extends JFrame {
         setVisible(true);
     }
 
-    public static void main(String[] args) {
-        new InstructorDashboard();
-    }
+    // public static void main(String[] args) {
+    //     new InstructorDashboard();
+    // }
 }

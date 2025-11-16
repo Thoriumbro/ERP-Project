@@ -54,7 +54,7 @@ public class LoginApp extends JFrame {
                             new AdminDashboard();
                         } else if (role.equalsIgnoreCase("instructor")) {
                             dispose();
-                            new InstructorDashboard();
+                            new InstructorDashboard(usernameField.getText());
                         } else if (role.equalsIgnoreCase("student")) {
                             dispose();
                             new StudentDashboard(usernameField.getText());

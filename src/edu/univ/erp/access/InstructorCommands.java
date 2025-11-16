@@ -6,44 +6,62 @@ import java.util.*;
 
 public class InstructorCommands {
 
-    public List<Integer> getMySections(int instructorId, String semester, int year) {
-        List<Integer> sections = new ArrayList<>();
-        String sql = "SELECT section_id FROM sections WHERE instructor_id = ? AND semester = ? AND year = ?";
+    public ResultSet getMySections(int instructorId, String semester, int year) {
+        String sql = "SELECT * FROM sections WHERE instructor_id = ? AND semester = ? AND year = ?";
 
-        try (Connection conn = DBConnection.getErpConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try {
+            Connection conn = DBConnection.getErpConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
 
             stmt.setInt(1, instructorId);
             stmt.setString(2, semester);
             stmt.setInt(3, year);
 
-            var rs = stmt.executeQuery();
-            while (rs.next()) sections.add(rs.getInt(1));
+            return stmt.executeQuery();  // return ResultSet directly
 
-        } catch (Exception e) { e.printStackTrace(); }
-
-        return sections;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
+
     public boolean saveScore(int sectionId, int studentId, String assessment, double score, double weight) {
-        String sql = "REPLACE INTO scores (section_id, student_id, assessment, score, weight) VALUES (?, ?, ?, ?, ?)";
 
-        try (Connection conn = DBConnection.getErpConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        String checkSql = "SELECT 1 FROM enrollments WHERE section_id = ? AND student_id = ?";
+        String saveSql = "REPLACE INTO scores (section_id, student_id, assessment, score, weight) VALUES (?, ?, ?, ?, ?)";
 
-            stmt.setInt(1, sectionId);
-            stmt.setInt(2, studentId);
-            stmt.setString(3, assessment);
-            stmt.setDouble(4, score);
-            stmt.setDouble(5, weight);
+        try (Connection conn = DBConnection.getErpConnection()) {
 
-            return stmt.executeUpdate() > 0;
+            // Check enrollment
+            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+                checkStmt.setInt(1, sectionId);
+                checkStmt.setInt(2, studentId);
+
+                ResultSet rs = checkStmt.executeQuery();
+                if (!rs.next()) {
+                    System.out.println("Student not enrolled — cannot save score.");
+                    return false; // student not registered in this section
+                }
+            }
+
+            // Save score
+            try (PreparedStatement stmt = conn.prepareStatement(saveSql)) {
+                stmt.setInt(1, sectionId);
+                stmt.setInt(2, studentId);
+                stmt.setString(3, assessment);
+                stmt.setDouble(4, score);
+                stmt.setDouble(5, weight);
+
+                return stmt.executeUpdate() > 0;
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
     }
+
 
     public Map<Integer, Double> computeFinalGrades(int sectionId) {
         Map<Integer, Double> finalGrades = new HashMap<>();

@@ -105,12 +105,21 @@ public class StudentCommands {
         try {
             Connection conn = DBConnection.getErpConnection();
             PreparedStatement stmt = conn.prepareStatement(
-                "SELECT g.enrollment_id, g.component, g.score, g.final_grade " +
-                "FROM grades g " +
-                "JOIN enrollments e ON g.enrollment_id = e.enrollment_id " +
-                "WHERE e.student_id = ?"
+                "(SELECT section_id, assessment, score, weight, NULL AS final_grade " +
+                " FROM scores " +
+                " WHERE student_id = ?) " +
+                "UNION ALL " +
+                "(SELECT section_id, 'Final Grade' AS assessment, NULL AS score, NULL AS weight, " +
+                "        SUM(score * (weight / 100)) AS final_grade " +
+                " FROM scores " +
+                " WHERE student_id = ? " +
+                " GROUP BY section_id) " +
+                "ORDER BY section_id, final_grade IS NULL DESC, assessment"
             );
+
             stmt.setInt(1, studentId);
+            stmt.setInt(2, studentId);
+
             return stmt.executeQuery();
 
         } catch (Exception e) {
@@ -118,4 +127,9 @@ public class StudentCommands {
             return null;
         }
     }
+
+
+
+
+
 }

@@ -52,18 +52,19 @@ public class AdminDashboard extends JFrame {
         });
 
         addStudentBtn.addActionListener(e -> {
+            String n = JOptionPane.showInputDialog("Name:");
             String u = JOptionPane.showInputDialog("Username:");
             String p = JOptionPane.showInputDialog("Password:");
             String r = JOptionPane.showInputDialog("Roll No:");
             String prog = JOptionPane.showInputDialog("Program:");
             int year = Integer.parseInt(JOptionPane.showInputDialog("Year:"));
-            boolean ok = admin.addStudent(u, p, r, prog, year);
+            boolean ok = admin.addStudent(u, p, n, r, prog, year);
             JOptionPane.showMessageDialog(this, ok ? "Student added" : "Failed");
         });
         
         addInstructorBtn.addActionListener(e -> {
-            String u = JOptionPane.showInputDialog("Username:");
             String n = JOptionPane.showInputDialog("Name:");
+            String u = JOptionPane.showInputDialog("Username:");
             String p = JOptionPane.showInputDialog("Password:");
             String d = JOptionPane.showInputDialog("Department:");
             boolean ok = admin.addInstructor(u, p, n, d);
@@ -112,7 +113,7 @@ public class AdminDashboard extends JFrame {
         setVisible(true);
     }
 
-    public static void main(String[] args) {
-        new AdminDashboard();
-    }
+    // public static void main(String[] args) {
+    //     new AdminDashboard();
+    // }
 }

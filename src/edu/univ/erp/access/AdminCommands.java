@@ -22,11 +22,11 @@ public class AdminCommands {
         }
     }
 
-    public boolean addStudent(String username, String password, String rollNo, String program, int year) {
+    public boolean addStudent(String username, String password, String name, String rollNo, String program, int year) {
         try (Connection authConn = DBConnection.getAuthConnection();
-             PreparedStatement userStmt = authConn.prepareStatement(
-                     "INSERT INTO users (username, password, role) VALUES (?, ?, 'student')",
-                     PreparedStatement.RETURN_GENERATED_KEYS)) {
+            PreparedStatement userStmt = authConn.prepareStatement(
+                    "INSERT INTO users (username, password, role) VALUES (?, ?, 'student')",
+                    PreparedStatement.RETURN_GENERATED_KEYS)) {
 
             userStmt.setString(1, username);
             userStmt.setString(2, password);
@@ -38,13 +38,14 @@ public class AdminCommands {
             int userId = rs.getInt(1);
 
             try (Connection erpConn = DBConnection.getErpConnection();
-                 PreparedStatement stmt = erpConn.prepareStatement(
-                         "INSERT INTO students (user_id, roll_no, program, year) VALUES (?, ?, ?, ?)")) {
+                PreparedStatement stmt = erpConn.prepareStatement(
+                        "INSERT INTO students (user_id, name, roll_no, program, year) VALUES (?, ?, ?, ?, ?)")) {
 
                 stmt.setInt(1, userId);
-                stmt.setString(2, rollNo);
-                stmt.setString(3, program);
-                stmt.setInt(4, year);
+                stmt.setString(2, name);
+                stmt.setString(3, rollNo);
+                stmt.setString(4, program);
+                stmt.setInt(5, year);
 
                 return stmt.executeUpdate() > 0;
             }
@@ -54,6 +55,7 @@ public class AdminCommands {
             return false;
         }
     }
+
 
     public boolean addInstructor(String username, String password, String name, String department) {
         try (Connection authConn = DBConnection.getAuthConnection();

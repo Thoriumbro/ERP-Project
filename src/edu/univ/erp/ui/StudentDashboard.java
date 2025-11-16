@@ -99,15 +99,15 @@ public class StudentDashboard extends JFrame {
         });
 
         gradesBtn.addActionListener(e -> {
-        System.out.println("Student ID: " + studentId); // debug
-        ResultSet rs = sc.viewGrades(studentId);
+            System.out.println("Student ID: " + studentId); // debug
+            ResultSet rs = sc.viewGrades(studentId);
 
-        if (rs != null) {
-            TablePopup.showResultSet(rs, "My Grades");
-        } else {
-            JOptionPane.showMessageDialog(this, "No grades available.");
-        }
-    });
+            if (rs != null) {
+                TablePopup.showResultSet(rs, "My Grades");
+            } else {
+                JOptionPane.showMessageDialog(this, "No grades available.");
+            }
+        });
 
 
         // profileBtn.addActionListener(e -> {
