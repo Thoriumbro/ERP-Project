@@ -1,6 +1,8 @@
 package edu.univ.erp.ui;
 
 import javax.swing.*;
+
+import edu.univ.erp.auth.*;
 import edu.univ.erp.data.DBConnection;
 import java.awt.*;
 import java.awt.event.*;
@@ -119,23 +121,40 @@ public class LoginApp extends JFrame {
 
                 try {
                     Connection conn = DBConnection.getAuthConnection();
-                    String sql = "SELECT role FROM users WHERE username=? AND password=?";
+
+                    String username = usernameField.getText();
+                    String typedPassword = new String(passwordField.getPassword());
+
+                    String sql = "SELECT password, role, last_login FROM users WHERE username=?";
                     PreparedStatement ps = conn.prepareStatement(sql);
-                    ps.setString(1, usernameField.getText());
-                    ps.setString(2, new String(passwordField.getPassword()));
+                    ps.setString(1, username);
                     ResultSet rs = ps.executeQuery();
 
                     if (rs.next()) {
-                        String role = rs.getString("role");
-                        JOptionPane.showMessageDialog(null, "Login successful as " + role);
 
-                        dispose();
-                        if (role.equalsIgnoreCase("admin")) {
-                            new AdminDashboard();
-                        } else if (role.equalsIgnoreCase("instructor")) {
-                            new InstructorDashboard(usernameField.getText());
+                        String storedHash = rs.getString("password");
+                        String role = rs.getString("role");
+                        String lastLogin = rs.getString("last_login");
+
+                        Encryption enc = new Encryption();
+                        LoginService loginService = new LoginService();
+
+                        if (enc.matches(typedPassword, storedHash)) {
+                            loginService.updateLastLogin(username, conn);
+                            loginService.showLastLoginMessage(role, lastLogin);
+
+                            dispose();
+
+                            if (role.equalsIgnoreCase("admin")) {
+                                new AdminDashboard();
+                            } else if (role.equalsIgnoreCase("instructor")) {
+                                new InstructorDashboard(username);
+                            } else {
+                                new StudentDashboard(username);
+                            }
+
                         } else {
-                            new StudentDashboard(usernameField.getText());
+                            JOptionPane.showMessageDialog(null, "Invalid username or password");
                         }
 
                     } else {
@@ -149,6 +168,8 @@ public class LoginApp extends JFrame {
                 }
             }
         });
+
+
 
         setVisible(true);
     }

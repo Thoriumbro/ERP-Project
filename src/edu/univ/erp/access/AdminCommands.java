@@ -1,6 +1,7 @@
 package edu.univ.erp.access;
 
 import edu.univ.erp.data.DBConnection;
+import edu.univ.erp.auth.Encryption;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.*;
@@ -12,8 +13,11 @@ public class AdminCommands {
              PreparedStatement stmt = conn.prepareStatement(
                      "INSERT INTO users (username, password, role) VALUES (?, ?, 'admin')")) {
 
+            Encryption enc = new Encryption();
+            String hashed = enc.encrypt(password);
+
             stmt.setString(1, username);
-            stmt.setString(2, password);
+            stmt.setString(2, hashed);
             return stmt.executeUpdate() > 0;
 
         } catch (Exception e) {
@@ -28,8 +32,11 @@ public class AdminCommands {
                     "INSERT INTO users (username, password, role) VALUES (?, ?, 'student')",
                     PreparedStatement.RETURN_GENERATED_KEYS)) {
 
+            Encryption enc = new Encryption();
+            String hashed = enc.encrypt(password);
+
             userStmt.setString(1, username);
-            userStmt.setString(2, password);
+            userStmt.setString(2, hashed);
 
             if (userStmt.executeUpdate() == 0) return false;
 
@@ -63,8 +70,11 @@ public class AdminCommands {
                      "INSERT INTO users (username, password, role) VALUES (?, ?, 'instructor')",
                      PreparedStatement.RETURN_GENERATED_KEYS)) {
 
+            Encryption enc = new Encryption();
+            String hashed = enc.encrypt(password);
+
             userStmt.setString(1, username);
-            userStmt.setString(2, password);
+            userStmt.setString(2, hashed);
 
             if (userStmt.executeUpdate() == 0) return false;
 
