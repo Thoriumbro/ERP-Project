@@ -27,41 +27,49 @@ public class StudentCommands {
 
     // 2. Register for a section
     public boolean registerForSection(int studentId, int sectionId) {
-        String checkDuplicate = "SELECT 1 FROM enrollments WHERE student_id = ? AND section_id = ?";
-        String checkCapacity = "SELECT capacity, (SELECT COUNT(*) FROM enrollments WHERE section_id = ?) AS enrolled " +
-                               "FROM sections WHERE section_id = ?";
-        String insert = "INSERT INTO enrollments (student_id, section_id, status) VALUES (?, ?, 'active')";
+    String checkDuplicate = "SELECT 1 FROM enrollments WHERE student_id = ? AND section_id = ?";
+    String checkCapacity = "SELECT capacity FROM sections WHERE section_id = ?";
+    String insert = "INSERT INTO enrollments (student_id, section_id, status) VALUES (?, ?, 'active')";
+    String reduceCapacity = "UPDATE sections SET capacity = capacity - 1 WHERE section_id = ?";
 
-        try (Connection conn = DBConnection.getErpConnection()) {
+    try (Connection conn = DBConnection.getErpConnection()) {
 
-            // Duplicate check
-            try (PreparedStatement stmt = conn.prepareStatement(checkDuplicate)) {
-                stmt.setInt(1, studentId);
-                stmt.setInt(2, sectionId);
-                var rs = stmt.executeQuery();
-                if (rs.next()) return false;
-            }
-
-            // Capacity check
-            try (PreparedStatement stmt = conn.prepareStatement(checkCapacity)) {
-                stmt.setInt(1, sectionId);
-                stmt.setInt(2, sectionId);
-                var rs = stmt.executeQuery();
-                if (rs.next() && rs.getInt("enrolled") >= rs.getInt("capacity")) return false;
-            }
-
-            // Register
-            try (PreparedStatement stmt = conn.prepareStatement(insert)) {
-                stmt.setInt(1, studentId);
-                stmt.setInt(2, sectionId);
-                return stmt.executeUpdate() > 0;
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+        // Duplicate check
+        try (PreparedStatement stmt = conn.prepareStatement(checkDuplicate)) {
+            stmt.setInt(1, studentId);
+            stmt.setInt(2, sectionId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) return false;
         }
+
+        // Capacity check
+        try (PreparedStatement stmt = conn.prepareStatement(checkCapacity)) {
+            stmt.setInt(1, sectionId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next() && rs.getInt("capacity") <= 0) return false;
+        }
+
+        // Register the student
+        try (PreparedStatement stmt = conn.prepareStatement(insert)) {
+            stmt.setInt(1, studentId);
+            stmt.setInt(2, sectionId);
+            stmt.executeUpdate();
+        }
+
+        // Reduce capacity by 1
+        try (PreparedStatement stmt = conn.prepareStatement(reduceCapacity)) {
+            stmt.setInt(1, sectionId);
+            stmt.executeUpdate();
+        }
+
+        return true;
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        return false;
     }
+}
+
 
     // 3. Drop a section
     public boolean dropSection(int studentId, int sectionId) {
