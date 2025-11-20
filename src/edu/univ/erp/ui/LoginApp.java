@@ -10,6 +10,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+
+
+import com.formdev.flatlaf.FlatLightLaf;
+
 public class LoginApp extends JFrame {
 
     JTextField usernameField;
@@ -19,7 +23,7 @@ public class LoginApp extends JFrame {
     public LoginApp() {
 
         setTitle("Login");
-        setSize(380, 700);
+        setSize(420, 720);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
@@ -29,22 +33,22 @@ public class LoginApp extends JFrame {
 
         // ---------------- TOP ----------------
         JPanel topPanel = new JPanel();
-        topPanel.setPreferredSize(new Dimension(380, 230));
+        topPanel.setPreferredSize(new Dimension(420, 250));
         topPanel.setBackground(Color.WHITE);
         topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
 
         topPanel.add(Box.createVerticalStrut(25));
 
         JLabel logo = new JLabel("\u263A", SwingConstants.CENTER);
-        logo.setFont(new Font("Serif", Font.BOLD, 60));
+        logo.setFont(new Font("Serif", Font.BOLD, 64));
         logo.setAlignmentX(Component.CENTER_ALIGNMENT);
         topPanel.add(logo);
 
         topPanel.add(Box.createVerticalStrut(10));
 
-        JLabel company = new JLabel("Welcome to ERP");
+        JLabel company = new JLabel("University ERP");
         company.setAlignmentX(Component.CENTER_ALIGNMENT);
-        company.setFont(new Font("SansSerif", Font.BOLD, 16));
+        company.setFont(new Font("SansSerif", Font.BOLD, 18));
         company.setForeground(new Color(30, 80, 60));
         topPanel.add(company);
 
@@ -56,13 +60,13 @@ public class LoginApp extends JFrame {
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
         centerPanel.add(Box.createVerticalStrut(30));
 
-        JLabel loginText = new JLabel("Login");
+        JLabel loginText = new JLabel("Sign in");
         loginText.setAlignmentX(Component.CENTER_ALIGNMENT);
-        loginText.setFont(new Font("SansSerif", Font.BOLD, 26));
+        loginText.setFont(new Font("SansSerif", Font.BOLD, 28));
         loginText.setForeground(new Color(40, 70, 60));
         centerPanel.add(loginText);
 
-        JLabel subText = new JLabel("Sign in to continue");
+        JLabel subText = new JLabel("Enter credentials to continue");
         subText.setAlignmentX(Component.CENTER_ALIGNMENT);
         subText.setFont(new Font("SansSerif", Font.PLAIN, 14));
         subText.setForeground(new Color(70, 100, 90));
@@ -71,7 +75,7 @@ public class LoginApp extends JFrame {
         centerPanel.add(Box.createVerticalStrut(25));
 
         // ---------------- USERNAME ----------------
-        JLabel nameLabel = new JLabel("Name");
+        JLabel nameLabel = new JLabel("Username");
         nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         nameLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
         nameLabel.setForeground(new Color(40, 70, 60));
@@ -108,9 +112,7 @@ public class LoginApp extends JFrame {
         loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         centerPanel.add(loginButton);
 
-        // ---------------- Bottom ----------------
-        centerPanel.add(Box.createVerticalStrut(25));
-
+        centerPanel.add(Box.createVerticalStrut(20));
         mainPanel.add(topPanel, BorderLayout.NORTH);
         mainPanel.add(centerPanel, BorderLayout.CENTER);
         add(mainPanel);
@@ -122,7 +124,7 @@ public class LoginApp extends JFrame {
                 try {
                     Connection conn = DBConnection.getAuthConnection();
 
-                    String username = usernameField.getText();
+                    String username = usernameField.getText().trim();
                     String typedPassword = new String(passwordField.getPassword());
 
                     String sql = "SELECT password, role, last_login FROM users WHERE username=?";
@@ -169,8 +171,6 @@ public class LoginApp extends JFrame {
             }
         });
 
-
-
         setVisible(true);
     }
 
@@ -178,25 +178,28 @@ public class LoginApp extends JFrame {
     // -------- Styling helpers --------
 
     private void styleTextField(JTextField field) {
-        field.setMaximumSize(new Dimension(260, 40));
-        field.setBackground(new Color(160, 200, 180));
-        field.setForeground(Color.WHITE);
-        field.setCaretColor(Color.WHITE);
+        field.setMaximumSize(new Dimension(300, 40));
+        field.setBackground(new Color(240, 248, 240));
+        field.setForeground(Color.BLACK);
+        field.setCaretColor(Color.BLACK);
         field.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        field.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        field.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(200,210,200)),
+                BorderFactory.createEmptyBorder(6, 10, 6, 10)));
     }
 
     private void styleButton(JButton btn) {
-        btn.setMaximumSize(new Dimension(260, 40));
-        btn.setBackground(new Color(40, 90, 70));
+        btn.setMaximumSize(new Dimension(300, 44));
+        btn.setBackground(new Color(46, 110, 92));
         btn.setForeground(Color.WHITE);
         btn.setFont(new Font("SansSerif", Font.BOLD, 15));
         btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        btn.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
     }
 
-
     public static void main(String[] args) {
-        new LoginApp();
+        // FlatLaf theme
+        FlatLightLaf.setup();
+        SwingUtilities.invokeLater(() -> new LoginApp());
     }
 }
