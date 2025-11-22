@@ -131,7 +131,9 @@ public class InstructorDashboard extends JFrame {
 
         form.add(new JLabel("Section ID:")); form.add(sectionId);
         form.add(new JLabel("Student ID:")); form.add(studentId);
-        form.add(new JLabel("Assessment:")); form.add(assessment);
+        form.add(new JLabel("Assessment:")); form.add(assessment);{
+            
+        }
         form.add(new JLabel("Score:")); form.add(score);
         form.add(new JLabel("Weight (%):")); form.add(weight);
 

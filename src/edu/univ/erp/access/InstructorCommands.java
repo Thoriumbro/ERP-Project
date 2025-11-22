@@ -25,7 +25,6 @@ public class InstructorCommands {
         }
     }
 
-
     public boolean saveScore(int sectionId, int studentId, String assessment, double score, double weight) {
 
         String checkSql = "SELECT 1 FROM enrollments WHERE section_id = ? AND student_id = ?";

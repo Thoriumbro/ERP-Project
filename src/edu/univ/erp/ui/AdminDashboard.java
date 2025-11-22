@@ -242,7 +242,7 @@ public class AdminDashboard extends JFrame {
         JPanel body = new JPanel();
         body.setBorder(BorderFactory.createEmptyBorder(20,40,20,40));
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
-        JLabel note = new JLabel("Maintenance Mode (toggle shown for UI only)");
+        JLabel note = new JLabel("Maintenance Mode");
         body.add(note);
         JToggleButton toggle = new JToggleButton("Off");
         toggle.addActionListener(e -> toggle.setText(toggle.isSelected() ? "On" : "Off"));
