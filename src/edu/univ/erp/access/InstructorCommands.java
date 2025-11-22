@@ -105,4 +105,42 @@ public class InstructorCommands {
 
         return stats;
     }
+
+    public boolean editSection(String field, Object newValue, int sectionId) {
+        Set<String> allowed = Set.of("day_time", "capacity");
+        if (!allowed.contains(field)) return false;
+
+        String sql = "UPDATE sections SET " + field + " = ? WHERE section_id = ?";
+
+        try (Connection conn = DBConnection.getErpConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setObject(1, newValue);
+            stmt.setInt(2, sectionId);
+            return stmt.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean addAssessmentComponent(int sectionId, String name, double weight) {
+        String sql = "INSERT INTO assessment_components (section_id, name, weight) VALUES (?, ?, ?)";
+
+        try (Connection conn = DBConnection.getErpConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, sectionId);
+            stmt.setString(2, name);
+            stmt.setDouble(3, weight);
+
+            return stmt.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            System.out.println("Error adding assessment component: " + e.getMessage());
+            return false;
+        }
+    }
+
 }

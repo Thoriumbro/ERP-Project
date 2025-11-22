@@ -4,6 +4,7 @@ import edu.univ.erp.data.DBConnection;
 import edu.univ.erp.auth.Encryption;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.time.LocalDate;
 import java.util.*;
 
 public class AdminCommands {
@@ -99,14 +100,18 @@ public class AdminCommands {
         }
     }
 
-    public boolean addCourse(String code, String title, int credits) {
+    public boolean addCourse(String code, String title, int credits, java.util.Date deadline) {
+        String sql = "INSERT INTO courses (code, title, credits, deadline) VALUES (?, ?, ?, ?)";
+
         try (Connection conn = DBConnection.getErpConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT INTO courses (code, title, credits) VALUES (?, ?, ?)")) {
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, code);
             stmt.setString(2, title);
             stmt.setInt(3, credits);
+
+            // Convert util.Date to sql.Date
+            stmt.setDate(4, new java.sql.Date(deadline.getTime()));
 
             return stmt.executeUpdate() > 0;
 
@@ -116,16 +121,29 @@ public class AdminCommands {
         }
     }
 
+
+
+
     public boolean editCourse(String field, Object newValue, String code) {
-        Set<String> allowed = Set.of("title", "credits");
+        // Allowed fields to prevent SQL injection
+        Set<String> allowed = Set.of("title", "credits", "deadline");
         if (!allowed.contains(field)) return false;
 
         String sql = "UPDATE courses SET " + field + " = ? WHERE code = ?";
 
         try (Connection conn = DBConnection.getErpConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setObject(1, newValue);
+            if ("deadline".equals(field)) {
+                if (newValue == null) {
+                    stmt.setNull(1, java.sql.Types.DATE);
+                } else {
+                    stmt.setDate(1, java.sql.Date.valueOf((LocalDate) newValue));
+                }
+            } else {
+                stmt.setObject(1, newValue);
+            }
+
             stmt.setString(2, code);
             return stmt.executeUpdate() > 0;
 
@@ -134,6 +152,7 @@ public class AdminCommands {
             return false;
         }
     }
+
 
     public boolean addSection(String courseCode, int instructorId, String dayTime, String room,
                               int capacity, String semester, int year) {

@@ -3,6 +3,7 @@ package edu.univ.erp.ui;
 import javax.swing.*;
 import java.awt.*;
 import java.sql.ResultSet;
+import java.time.LocalDate;
 
 import edu.univ.erp.access.AdminCommands;
 import edu.univ.erp.auth.MaintenanceMode;
@@ -184,24 +185,61 @@ public class AdminDashboard extends JFrame {
         JPanel p = new JPanel(new BorderLayout());
         p.add(makeTopPanel("Courses"), BorderLayout.NORTH);
 
-        JPanel form = new JPanel(new GridLayout(4,2,8,8));
-        form.setBorder(BorderFactory.createEmptyBorder(20,120,20,120));
-        JTextField code = new JTextField(); JTextField title = new JTextField(); JTextField credits = new JTextField();
+        JPanel form = new JPanel(new GridLayout(4, 2, 8, 8));
+        form.setBorder(BorderFactory.createEmptyBorder(20, 120, 20, 120));
+
+        JTextField code = new JTextField();
+        JTextField title = new JTextField();
+        JTextField credits = new JTextField();
+
+        // ---- NEW: date formatted field ----
+        java.text.DateFormat dateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd");
+        dateFormat.setLenient(false); // prevent invalid dates
+
+        JFormattedTextField deadline = new JFormattedTextField(dateFormat);
+        deadline.setColumns(10);
+
+        // ADD FORM FIELDS
         form.add(new JLabel("Code:")); form.add(code);
         form.add(new JLabel("Title:")); form.add(title);
         form.add(new JLabel("Credits:")); form.add(credits);
+        form.add(new JLabel("Deadline (YYYY-MM-DD):")); form.add(deadline);
+
         JButton add = new JButton("Add Course");
+
         add.addActionListener(e -> {
             try {
-                boolean ok = admin.addCourse(code.getText().trim(), title.getText().trim(), Integer.parseInt(credits.getText().trim()));
+                String d = deadline.getText().trim();
+
+                // Validate date input
+                java.util.Date parsed = dateFormat.parse(d);
+
+                boolean ok = admin.addCourse(
+                        code.getText().trim(),
+                        title.getText().trim(),
+                        Integer.parseInt(credits.getText().trim()),
+                        java.sql.Date.valueOf(d)
+                );
+
                 JOptionPane.showMessageDialog(this, ok? "Course added." : "Failed");
-                if (ok) { code.setText(""); title.setText(""); credits.setText(""); }
-            } catch (Exception ex) { JOptionPane.showMessageDialog(this, "Enter valid credits."); }
+
+                if (ok) {
+                    code.setText("");
+                    title.setText("");
+                    credits.setText("");
+                    deadline.setText("");
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Enter valid data. Ensure date is in YYYY-MM-DD format.");
+            }
         });
+
         p.add(form, BorderLayout.CENTER);
         p.add(add, BorderLayout.SOUTH);
         return p;
     }
+
+
 
     private JPanel sectionsPanel() {
         JPanel p = new JPanel(new BorderLayout());
