@@ -5,6 +5,7 @@ import java.awt.*;
 import java.sql.ResultSet;
 
 import edu.univ.erp.access.AdminCommands;
+import edu.univ.erp.auth.MaintenanceMode;
 
 /**
  * Admin dashboard - embedded forms + tables, logout available.
@@ -240,18 +241,35 @@ public class AdminDashboard extends JFrame {
         p.add(makeTopPanel("Settings"), BorderLayout.NORTH);
 
         JPanel body = new JPanel();
-        body.setBorder(BorderFactory.createEmptyBorder(20,40,20,40));
+        body.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
+
         JLabel note = new JLabel("Maintenance Mode");
         body.add(note);
-        JToggleButton toggle = new JToggleButton("Off");
-        toggle.addActionListener(e -> toggle.setText(toggle.isSelected() ? "On" : "Off"));
+
+        MaintenanceMode mm = new MaintenanceMode();
+        boolean currentState = mm.isEnabled();
+
+        JToggleButton toggle = new JToggleButton(currentState ? "On" : "Off");
+        toggle.setSelected(currentState);
+
+        toggle.addActionListener(e -> {
+            if (toggle.isSelected()) {
+                mm.enable();
+                toggle.setText("On");
+            } else {
+                mm.disable();
+                toggle.setText("Off");
+            }
+        });
+
         body.add(Box.createVerticalStrut(8));
         body.add(toggle);
 
         p.add(body, BorderLayout.CENTER);
         return p;
     }
+
 
     private void addFormRow(JPanel parent, String label, JComponent field) {
         JPanel row = new JPanel(new BorderLayout(6,6));

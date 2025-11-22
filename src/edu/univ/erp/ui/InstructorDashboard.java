@@ -4,7 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.sql.ResultSet;
 import java.util.Map;
-
+import edu.univ.erp.auth.MaintenanceMode;
 import edu.univ.erp.access.InstructorCommands;
 
 /**
@@ -141,15 +141,29 @@ public class InstructorDashboard extends JFrame {
         form.add(new JLabel()); form.add(save);
 
         save.addActionListener(e -> {
-            try {
-                boolean ok = instructor.saveScore(Integer.parseInt(sectionId.getText().trim()),
-                        Integer.parseInt(studentId.getText().trim()), assessment.getText().trim(),
-                        Double.parseDouble(score.getText().trim()), Double.parseDouble(weight.getText().trim()));
-                JOptionPane.showMessageDialog(this, ok? "Saved":"Failed");
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Please fill fields correctly.");
+        try {
+            MaintenanceMode mm = new MaintenanceMode();
+
+            if (mm.isEnabled()) {
+                JOptionPane.showMessageDialog(this, "System is currently in maintenance mode.\nGo away.");
+                return;
             }
-        });
+
+            boolean ok = instructor.saveScore(
+                    Integer.parseInt(sectionId.getText().trim()),
+                    Integer.parseInt(studentId.getText().trim()),
+                    assessment.getText().trim(),
+                    Double.parseDouble(score.getText().trim()),
+                    Double.parseDouble(weight.getText().trim())
+            );
+
+            JOptionPane.showMessageDialog(this, ok ? "Saved" : "Failed");
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Please fill fields correctly.");
+        }
+    });
+
 
         p.add(form, BorderLayout.CENTER);
         return p;

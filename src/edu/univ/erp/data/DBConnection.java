@@ -8,18 +8,19 @@ import java.sql.SQLException;
  * Handles database connections for the ERP project.
  * Update USER and PASSWORD with your MySQL credentials.
  */
+
 public class DBConnection {
 
     private static final String URL_AUTH = "jdbc:mysql://localhost:3306/auth_db";
     private static final String URL_ERP = "jdbc:mysql://localhost:3306/erp_db";
-    private static final String USER = "root";             // your MySQL username
-    private static final String PASSWORD = "qwertyuiop"; // your MySQL password
+    private static final String USER = "root";            
+    private static final String PASSWORD = "qwertyuiop";
 
     static {
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver"); // load the MySQL JDBC driver
+            Class.forName("com.mysql.cj.jdbc.Driver"); 
         } catch (ClassNotFoundException e) {
-            System.out.println("❌ JDBC Driver not found: " + e.getMessage());
+            System.out.println("JDBC Driver not found: " + e.getMessage());
         }
     }
 
@@ -30,7 +31,7 @@ public class DBConnection {
         try {
             return DriverManager.getConnection(URL_AUTH, USER, PASSWORD);
         } catch (SQLException e) {
-            System.out.println("❌ Failed to connect to auth_db: " + e.getMessage());
+            System.out.println("Failed to connect to auth_db: " + e.getMessage());
             return null;
         }
     }
@@ -42,7 +43,7 @@ public class DBConnection {
         try {
             return DriverManager.getConnection(URL_ERP, USER, PASSWORD);
         } catch (SQLException e) {
-            System.out.println("❌ Failed to connect to erp_db: " + e.getMessage());
+            System.out.println("Failed to connect to erp_db: " + e.getMessage());
             return null;
         }
     }

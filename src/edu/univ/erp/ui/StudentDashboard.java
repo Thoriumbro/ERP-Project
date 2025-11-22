@@ -5,6 +5,7 @@ import java.awt.*;
 import java.sql.ResultSet;
 
 import edu.univ.erp.access.StudentCommands;
+import edu.univ.erp.auth.MaintenanceMode;
 
 /**
  * Student dashboard: sidebar + CardLayout, integrated JTable panels, logout button.
@@ -141,6 +142,12 @@ public class StudentDashboard extends JFrame {
 
         enroll.addActionListener(e -> {
             try {
+                MaintenanceMode mm = new MaintenanceMode();
+
+                if (mm.isEnabled()) {
+                    JOptionPane.showMessageDialog(this, "System is currently in maintenance mode.\nGo away");
+                    return;
+                }
                 boolean ok = sc.registerForSection(studentId, Integer.parseInt(secId.getText().trim()));
                 JOptionPane.showMessageDialog(this, ok ? "Enrolled successfully." : "Failed to enroll (maybe full or duplicate).");
                 // optionally refresh timetable or catalog if desired
