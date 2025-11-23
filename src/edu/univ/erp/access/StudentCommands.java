@@ -14,13 +14,14 @@ public class StudentCommands {
         try {
             Connection conn = DBConnection.getErpConnection();
             PreparedStatement stmt = conn.prepareStatement(
-                "SELECT s.section_id, c.code, c.title, c.credits, s.capacity, " +
-                "i.name AS instructor, s.day_time, s.room, s.semester, s.year " +
+                "SELECT s.section_id, c.code, c.title, c.credits, c.deadline, " +
+                "s.capacity, i.name AS instructor, s.day_time, s.room, " +
+                "s.semester, s.year " +
                 "FROM sections s " +
                 "JOIN courses c ON s.course_id = c.code " +
                 "JOIN instructors i ON s.instructor_id = i.user_id"
             );
-            return stmt.executeQuery(); 
+            return stmt.executeQuery();
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -29,14 +30,23 @@ public class StudentCommands {
 
     // 2. Register for a section
     public boolean registerForSection(int studentId, int sectionId) {
+
         String checkDuplicate = "SELECT 1 FROM enrollments WHERE student_id = ? AND section_id = ?";
+        String sameCourseCheck = """
+            SELECT 1 
+            FROM enrollments e
+            JOIN sections s1 ON e.section_id = s1.section_id
+            JOIN sections s2 ON s2.section_id = ?
+            WHERE e.student_id = ?
+            AND s1.course_id = s2.course_id
+        """;
         String checkCapacity = "SELECT capacity FROM sections WHERE section_id = ?";
         String insert = "INSERT INTO enrollments (student_id, section_id, status) VALUES (?, ?, 'active')";
         String reduceCapacity = "UPDATE sections SET capacity = capacity - 1 WHERE section_id = ?";
 
         try (Connection conn = DBConnection.getErpConnection()) {
 
-            // Duplicate check
+            // 1. Duplicate check: same exact section
             try (PreparedStatement stmt = conn.prepareStatement(checkDuplicate)) {
                 stmt.setInt(1, studentId);
                 stmt.setInt(2, sectionId);
@@ -44,21 +54,33 @@ public class StudentCommands {
                 if (rs.next()) return false;
             }
 
-            // Capacity check
+            // 2. Check if already registered in ANOTHER section of SAME COURSE
+            try (PreparedStatement stmt = conn.prepareStatement(sameCourseCheck)) {
+                stmt.setInt(1, sectionId); // s2.section_id
+                stmt.setInt(2, studentId);
+
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    System.out.println("Already registered in another section of this course.");
+                    return false;
+                }
+            }
+
+            // 3. Capacity check
             try (PreparedStatement stmt = conn.prepareStatement(checkCapacity)) {
                 stmt.setInt(1, sectionId);
                 ResultSet rs = stmt.executeQuery();
                 if (rs.next() && rs.getInt("capacity") <= 0) return false;
             }
 
-            // Register the student
+            // 4. Insert enrollment
             try (PreparedStatement stmt = conn.prepareStatement(insert)) {
                 stmt.setInt(1, studentId);
                 stmt.setInt(2, sectionId);
                 stmt.executeUpdate();
             }
 
-            // Reduce capacity by 1
+            // 5. Decrease capacity
             try (PreparedStatement stmt = conn.prepareStatement(reduceCapacity)) {
                 stmt.setInt(1, sectionId);
                 stmt.executeUpdate();
@@ -73,14 +95,15 @@ public class StudentCommands {
     }
 
 
+
     // 3. Drop a section
     public boolean dropSection(int studentId, int sectionId) {
 
         String checkDeadlineQuery = """
-            SELECT c.deadline 
+            SELECT c.deadline
             FROM courses c
-            JOIN sections s ON s.course_code = c.code
-            WHERE s.id = ?
+            JOIN sections s ON s.course_id = c.code
+            WHERE s.section_id = ?
         """;
 
         String deleteQuery = "DELETE FROM enrollments WHERE student_id = ? AND section_id = ?";
@@ -89,9 +112,9 @@ public class StudentCommands {
             PreparedStatement checkStmt = conn.prepareStatement(checkDeadlineQuery);
             PreparedStatement deleteStmt = conn.prepareStatement(deleteQuery)) {
 
-            // Step 1: Check deadline
+            // Step 1: check deadline exists
             checkStmt.setInt(1, sectionId);
-            var rs = checkStmt.executeQuery();
+            ResultSet rs = checkStmt.executeQuery();
 
             if (!rs.next()) {
                 System.out.println("No deadline found. Drop denied.");
@@ -101,13 +124,13 @@ public class StudentCommands {
             java.sql.Date deadline = rs.getDate("deadline");
             java.sql.Date today = java.sql.Date.valueOf(java.time.LocalDate.now());
 
-            // Step 2: If deadline passed, disallow drop
+            // Step 2: block dropping after deadline
             if (today.after(deadline)) {
                 System.out.println("Cannot drop. Deadline passed.");
                 return false;
             }
 
-            // Step 3: Allow deletion if still before or on deadline
+            // Step 3: drop section
             deleteStmt.setInt(1, studentId);
             deleteStmt.setInt(2, sectionId);
 
@@ -120,15 +143,19 @@ public class StudentCommands {
     }
 
 
+
     // 4. View timetable
     public ResultSet viewTimetable(int studentId) {
         try {
             Connection conn = DBConnection.getErpConnection();
             PreparedStatement stmt = conn.prepareStatement(
-                "SELECT c.code, c.title, s.day_time, s.room, s.semester, s.year " +
+                "SELECT s.section_id, c.code, c.title, " +
+                "i.name AS instructor, s.day_time, s.room, " +
+                "s.semester, s.year " +
                 "FROM enrollments e " +
                 "JOIN sections s ON e.section_id = s.section_id " +
                 "JOIN courses c ON s.course_id = c.code " +
+                "JOIN instructors i ON s.instructor_id = i.user_id " +
                 "WHERE e.student_id = ?"
             );
             stmt.setInt(1, studentId);
@@ -139,6 +166,7 @@ public class StudentCommands {
             return null;
         }
     }
+
 
     // 5. View grades
     public ResultSet viewGrades(int studentId) {
