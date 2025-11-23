@@ -1,6 +1,8 @@
 package edu.univ.erp.access;
 
 import edu.univ.erp.data.DBConnection;
+
+import java.io.FileWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -166,8 +168,47 @@ public class StudentCommands {
         }
     }
 
+    public boolean exportGradesToCSV(int studentId, String filePath) {
+        String[] headers = {"Section ID", "Assessment", "Score", "Weight", "Final Grade" };
 
+        try (Connection conn = DBConnection.getErpConnection();
+            PreparedStatement stmt = conn.prepareStatement(
+                    "(SELECT section_id, assessment, score, weight, NULL AS final_grade " +
+                    " FROM scores " +
+                    " WHERE student_id = ?) " +
+                    "UNION ALL " +
+                    "(SELECT section_id, 'Final Grade' AS assessment, NULL AS score, NULL AS weight, " +
+                    "        SUM(score * (weight / 100)) AS final_grade " +
+                    " FROM scores " +
+                    " WHERE student_id = ? " +
+                    " GROUP BY section_id) " +
+                    "ORDER BY section_id, final_grade IS NULL DESC, assessment"
+            );
+            FileWriter writer = new FileWriter(filePath)
+        ) {
+            stmt.setInt(1, studentId);
+            stmt.setInt(2, studentId);
 
+            ResultSet rs = stmt.executeQuery();
 
+            // Write CSV header
+            writer.append(String.join(",", headers)).append("\n");
 
+            // Write rows
+            while (rs.next()) {
+                writer.append(rs.getString("section_id")).append(",");
+                writer.append(rs.getString("assessment")).append(",");
+                writer.append(rs.getString("score") == null ? "" : rs.getString("score")).append(",");
+                writer.append(rs.getString("weight") == null ? "" : rs.getString("weight")).append(",");
+                writer.append(rs.getString("final_grade") == null ? "" : rs.getString("final_grade")).append("\n");
+            }
+
+            writer.flush();
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
