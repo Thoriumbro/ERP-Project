@@ -1,128 +1,336 @@
 package edu.univ.erp.ui;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.sql.ResultSet;
+import java.sql.*;
 import java.util.Map;
-import edu.univ.erp.auth.MaintenanceMode;
-import edu.univ.erp.access.InstructorCommands;
 
-/**
- * Instructor dashboard with in-panel tables and logout.
- * Preserves all backend method calls.
- */
+import edu.univ.erp.access.InstructorCommands;
+import edu.univ.erp.auth.MaintenanceMode;
+import edu.univ.erp.data.DBConnection;
+
 public class InstructorDashboard extends JFrame {
+
     private CardLayout cards = new CardLayout();
     private JPanel cardPanel;
-    private InstructorCommands instructor = new InstructorCommands();
-    private int instructorId;
-    private JTable centerTable = new JTable();
-    private JScrollPane centerScroll = new JScrollPane(centerTable);
+
+    // InstructorCommands must be updated to accept instructorId on method calls,
+    // as Code 2 of InstructorCommands did not have a constructor.
+    private final InstructorCommands instructor = new InstructorCommands();
+
+    private final int instructorId;
 
     public InstructorDashboard(String username) {
+
         this.instructorId = getInstructorIdByUsername(username);
 
         setTitle("Instructor Dashboard - University ERP");
         setSize(1100, 700);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
 
-        // sidebar
-        JPanel sidebar = new JPanel(new GridLayout(0,1,10,10));
-        sidebar.setBackground(new Color(31,67,59));
-        sidebar.setBorder(BorderFactory.createEmptyBorder(20,12,20,12));
-        String[] labels = {"Home", "My Sections", "Enter Scores", "Final Grades", "Stats"};
-        for (String s : labels) {
-            JButton b = new JButton(s);
-            b.setBackground(new Color(60,135,110));
-            b.setForeground(Color.WHITE);
-            b.setFont(new Font("SansSerif", Font.BOLD, 14));
-            b.setFocusPainted(false);
-            b.addActionListener(e -> cards.show(cardPanel, s));
+        // --- Sidebar ---
+        JPanel sidebar = new JPanel(new GridLayout(0, 1, 10, 10));
+        sidebar.setBackground(new Color(31, 67, 59));
+        sidebar.setBorder(BorderFactory.createEmptyBorder(20, 12, 20, 12));
+
+        String[] items = {
+                "Home",
+                "My Sections",
+                "Enter Scores",
+                "Final Grades",
+                "Stats",
+                "Edit Section"
+        };
+
+        for (String it : items) {
+            JButton b = new JButton(it);
+            styleSidebarButton(b);
+            b.addActionListener(e -> showCard(it));
             sidebar.add(b);
         }
 
+        // --- Card Panel ---
         cardPanel = new JPanel(cards);
-        cardPanel.add(makeTopPanel("Welcome, Instructor"), "Home");
-        cardPanel.add(mySectionsPanel(), "My Sections");
-        cardPanel.add(enterScoresPanel(), "Enter Scores");
-        cardPanel.add(finalGradesPanel(), "Final Grades");
-        cardPanel.add(statsPanel(), "Stats");
+
+        cardPanel.add(makeHomePanel(), "Home");
+        cardPanel.add(makeMySectionsPanel(), "My Sections");
+        cardPanel.add(makeEnterScoresPanel(), "Enter Scores");
+        cardPanel.add(makeFinalGradesPanel(), "Final Grades");
+        cardPanel.add(makeStatsPanel(), "Stats");
+        cardPanel.add(makeEditSectionPanel(), "Edit Section");
 
         add(sidebar, BorderLayout.WEST);
         add(cardPanel, BorderLayout.CENTER);
-        cards.show(cardPanel, "Home");
+
+        showCard("Home");
         setVisible(true);
     }
 
+    // --- UTILITY: Styling ---
+    private void styleSidebarButton(JButton b) {
+        b.setBackground(new Color(60, 135, 110));
+        b.setForeground(Color.WHITE);
+        b.setFont(new Font("SansSerif", Font.BOLD, 14));
+        b.setFocusPainted(false);
+        b.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+    }
+
+    // --- UTILITY: Top Panel for Tabs ---
     private JPanel makeTopPanel(String titleText) {
         JPanel top = new JPanel(new BorderLayout());
-        top.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
-        top.setBackground(new Color(245,247,246));
+        top.setBorder(new EmptyBorder(12, 12, 12, 12));
+        top.setBackground(new Color(245, 247, 246));
 
         JLabel title = new JLabel(titleText);
         title.setFont(new Font("SansSerif", Font.BOLD, 20));
 
         JButton logout = new JButton("Logout");
+        logout.setBackground(new Color(200, 60, 60));
+        logout.setForeground(Color.WHITE);
         logout.addActionListener(e -> {
             dispose();
-            SwingUtilities.invokeLater(() -> new LoginApp());
+            SwingUtilities.invokeLater(LoginApp::new); // Assuming LoginApp exists
         });
 
-        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         right.setOpaque(false);
         right.add(logout);
 
         top.add(title, BorderLayout.WEST);
         top.add(right, BorderLayout.EAST);
 
-        JPanel wrapper = new JPanel(new BorderLayout());
-        wrapper.add(top, BorderLayout.NORTH);
-        centerTable.setModel(new javax.swing.table.DefaultTableModel());
-        wrapper.add(centerScroll, BorderLayout.CENTER);
-        return wrapper;
+        return top;
     }
 
-    private JPanel mySectionsPanel() {
-        JPanel p = new JPanel(new BorderLayout());
-        p.add(makeTopPanel("My Sections"), BorderLayout.NORTH);
+    // ----------------------------------------------------------
+    // HOME PAGE
+    // ----------------------------------------------------------
+    private JPanel makeHomePanel() {
 
-        JPanel controls = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        controls.add(new JLabel("Semester:"));
-        JTextField sem = new JTextField(8);
-        controls.add(sem);
-        controls.add(new JLabel("Year:"));
-        JTextField year = new JTextField(6);
-        controls.add(year);
-        JButton load = new JButton("Load");
-        controls.add(load);
-        p.add(controls, BorderLayout.NORTH);
+        JPanel home = new JPanel(new BorderLayout());
+        home.setBackground(new Color(245, 247, 246));
 
-        load.addActionListener(e -> {
-            try {
-                ResultSet rs = instructor.getMySections(instructorId, sem.getText().trim(), Integer.parseInt(year.getText().trim()));
-                if (rs != null) {
-                    centerTable = TableUtils.buildStyledTable(rs);
-                    centerScroll.setViewportView(centerTable);
-                }
-                else {
-                    centerTable.setModel(new javax.swing.table.DefaultTableModel());
-                    JOptionPane.showMessageDialog(this, "No sections found.");
-                }
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+        // top bar (customized for Home)
+        JPanel top = makeTopPanel("Instructor Dashboard");
+        top.getComponent(0).setFont(new Font("SansSerif", Font.BOLD, 26)); // set larger font for title
+        home.add(top, BorderLayout.NORTH);
+
+        // center
+        JPanel center = new JPanel(new BorderLayout());
+        center.setBorder(new EmptyBorder(20, 40, 40, 40));
+        center.setBackground(new Color(245, 247, 246));
+
+        // stats row
+        JPanel statsRow = new JPanel(new GridLayout(1, 2, 20, 20));
+        statsRow.setOpaque(false);
+
+        statsRow.add(makeStatCard("My Sections", getInstructorSectionCount()));
+        statsRow.add(makeStatCard("Students Taught", getInstructorStudentCount()));
+
+        center.add(statsRow, BorderLayout.NORTH);
+
+        // lower (Announcements + Quick Actions)
+        JPanel lower = new JPanel(new GridLayout(1, 2, 20, 20));
+        lower.setOpaque(false);
+        lower.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
+
+        // ----------- 📢 Announcements Panel ----------------
+        JPanel ann = new JPanel(new BorderLayout());
+        ann.setBackground(Color.WHITE);
+        ann.setBorder(new EmptyBorder(20, 20, 20, 20));
+
+        JLabel aTitle = new JLabel("Instructor Announcements");
+        aTitle.setFont(new Font("SansSerif", Font.BOLD, 16));
+
+        JTextArea msgs = new JTextArea(
+                "• Grade submission deadlines soon.\n" +
+                "• Prepare upcoming evaluations.\n" +
+                "• Department faculty meet next week.\n" +
+                "• Update attendance regularly.\n"
+        );
+        msgs.setEditable(false);
+        msgs.setBackground(new Color(250, 250, 250));
+        msgs.setFont(new Font("SansSerif", Font.PLAIN, 14));
+
+
+        ann.add(aTitle, BorderLayout.NORTH);
+        ann.add(msgs, BorderLayout.CENTER);
+
+
+        // ----------- ⚡ Quick Actions Panel ----------------
+        JPanel actions = new JPanel();
+        actions.setLayout(new BoxLayout(actions, BoxLayout.Y_AXIS));
+        actions.setBackground(Color.WHITE);
+        actions.setBorder(new EmptyBorder(20, 20, 20, 20));
+        actions.setBorder(BorderFactory.createTitledBorder("Quick Actions"));
+
+        JButton b1 = new JButton("View My Sections");
+        JButton b2 = new JButton("Enter Scores");
+        JButton b3 = new JButton("Final Grades");
+        JButton b4 = new JButton("Class Stats");
+        JButton b5 = new JButton("Edit Section Details");
+
+        b1.addActionListener(e -> showCard("My Sections"));
+        b2.addActionListener(e -> showCard("Enter Scores"));
+        b3.addActionListener(e -> showCard("Final Grades"));
+        b4.addActionListener(e -> showCard("Stats"));
+        b5.addActionListener(e -> showCard("Edit Section"));
+
+        for (JButton bt : new JButton[]{b1, b2, b3, b4, b5}) {
+            bt.setMaximumSize(new Dimension(240, 40));
+            bt.setAlignmentX(Component.LEFT_ALIGNMENT);
+        }
+
+        actions.add(b1);
+        actions.add(Box.createVerticalStrut(10));
+        actions.add(b2);
+        actions.add(Box.createVerticalStrut(10));
+        actions.add(b3);
+        actions.add(Box.createVerticalStrut(10));
+        actions.add(b4);
+        actions.add(Box.createVerticalStrut(10));
+        actions.add(b5);
+
+        lower.add(ann); // Add announcements back
+        lower.add(actions); // Add actions
+
+        center.add(lower, BorderLayout.CENTER);
+        home.add(center, BorderLayout.CENTER);
+
+        return home;
+    }
+
+    // --- UTILITY: Stat Card ---
+    private JPanel makeStatCard(String title, int count) {
+        JPanel card = new JPanel();
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setBackground(Color.WHITE);
+        card.setBorder(new EmptyBorder(20, 20, 20, 20));
+
+        JLabel t = new JLabel(title);
+        t.setFont(new Font("SansSerif", Font.BOLD, 16));
+        t.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel c = new JLabel(String.valueOf(count));
+        c.setFont(new Font("SansSerif", Font.BOLD, 36));
+        c.setForeground(new Color(30, 130, 100));
+        c.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        card.add(Box.createVerticalGlue());
+        card.add(t);
+        card.add(Box.createVerticalStrut(10));
+        card.add(c);
+        card.add(Box.createVerticalGlue());
+
+        return card;
+    }
+
+    // --- DATA FETCH: Stat Counts ---
+    private int getInstructorSectionCount() {
+        String sql = "SELECT COUNT(*) FROM sections WHERE instructor_id = ?";
+        try (Connection conn = DBConnection.getErpConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, instructorId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
             }
-        });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    private int getInstructorStudentCount() {
+        String sql = "SELECT COUNT(DISTINCT e.student_id) FROM enrollments e " +
+                "JOIN sections s ON e.section_id = s.section_id " +
+                "WHERE s.instructor_id = ?";
+        try (Connection conn = DBConnection.getErpConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, instructorId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    // ----------------------------------------------------------
+    // MY SECTIONS PANEL
+    // ----------------------------------------------------------
+    private JPanel makeMySectionsPanel() {
+        JPanel p = new JPanel(new BorderLayout());
+        JPanel top = makeTopPanel("My Sections");
+
+        JButton refresh = new JButton("Refresh");
+        refresh.addActionListener(e -> loadSectionsTable(p));
+
+        // Add refresh button to the right side of the top panel
+        ((JPanel) top.getComponent(1)).add(refresh);
+        p.add(top, BorderLayout.NORTH);
+
+        // Initial setup for the table
+        loadSectionsTable(p);
 
         return p;
     }
 
-    private JPanel enterScoresPanel() {
+    // UTILITY: Loads data for My Sections and updates the panel
+    private void loadSectionsTable(JPanel panel) {
+        try {
+            String sql = "SELECT section_id, course_id, day_time, room, capacity, semester, year " +
+                         "FROM sections WHERE instructor_id = ?";
+
+            try (Connection conn = DBConnection.getErpConnection();
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+                stmt.setInt(1, instructorId);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    JTable table = TableUtils.buildStyledTable(rs);
+                    JScrollPane newScroll = new JScrollPane(table);
+
+                    // Remove existing table component if present
+                    Component centerComponent = ((BorderLayout) panel.getLayout()).getLayoutComponent(BorderLayout.CENTER);
+                    if (centerComponent instanceof JScrollPane) {
+                        panel.remove(centerComponent);
+                    }
+                    panel.add(newScroll, BorderLayout.CENTER);
+                    panel.revalidate();
+                    panel.repaint();
+                }
+            }
+        } catch (Exception e) {
+            // Display empty table or error message
+            JTable emptyTable = new JTable(new javax.swing.table.DefaultTableModel());
+            JScrollPane emptyScroll = new JScrollPane(emptyTable);
+
+            Component centerComponent = ((BorderLayout) panel.getLayout()).getLayoutComponent(BorderLayout.CENTER);
+            if (centerComponent instanceof JScrollPane) {
+                panel.remove(centerComponent);
+            }
+            panel.add(emptyScroll, BorderLayout.CENTER);
+            panel.revalidate();
+            panel.repaint();
+        }
+    }
+
+
+    // ----------------------------------------------------------
+    // ENTER SCORES PANEL
+    // ----------------------------------------------------------
+    private JPanel makeEnterScoresPanel() {
         JPanel p = new JPanel(new BorderLayout());
         p.add(makeTopPanel("Enter Scores"), BorderLayout.NORTH);
 
-        JPanel form = new JPanel(new GridLayout(6,2,10,10));
-        form.setBorder(BorderFactory.createEmptyBorder(20,80,20,80));
+        JPanel form = new JPanel(new GridLayout(6, 2, 10, 10));
+        form.setBorder(new EmptyBorder(20, 80, 20, 80));
+
         JTextField sectionId = new JTextField();
         JTextField studentId = new JTextField();
         JTextField assessment = new JTextField();
@@ -131,126 +339,228 @@ public class InstructorDashboard extends JFrame {
 
         form.add(new JLabel("Section ID:")); form.add(sectionId);
         form.add(new JLabel("Student ID:")); form.add(studentId);
-        form.add(new JLabel("Assessment:")); form.add(assessment);{
-            
-        }
-        form.add(new JLabel("Score:")); form.add(score);
+        form.add(new JLabel("Assessment:")); form.add(assessment);
+        form.add(new JLabel("Score (0-100):")); form.add(score);
         form.add(new JLabel("Weight (%):")); form.add(weight);
 
         JButton save = new JButton("Save Score");
-        form.add(new JLabel()); form.add(save);
+        form.add(new JLabel());
+        form.add(save);
 
         save.addActionListener(e -> {
-        try {
-            MaintenanceMode mm = new MaintenanceMode();
+            try {
+                // --- Maintenance Check for Save Score ---
+                MaintenanceMode mm = new MaintenanceMode();
+                if (mm.isEnabled()) {
+                    JOptionPane.showMessageDialog(this, "System under maintenance.");
+                    return;
+                }
 
-            if (mm.isEnabled()) {
-                JOptionPane.showMessageDialog(this, "System is currently in maintenance mode.\nGo away.");
-                return;
+                int secId = Integer.parseInt(sectionId.getText());
+
+                boolean ok = instructor.saveScore(
+                        secId,
+                        Integer.parseInt(studentId.getText()),
+                        assessment.getText().trim(),
+                        Double.parseDouble(score.getText()),
+                        Double.parseDouble(weight.getText())
+                );
+                JOptionPane.showMessageDialog(this, ok ? "Score saved." : "Operation failed. Check section/student ID.");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Invalid input. Please check all fields.");
             }
-
-            boolean ok = instructor.saveScore(
-                    Integer.parseInt(sectionId.getText().trim()),
-                    Integer.parseInt(studentId.getText().trim()),
-                    assessment.getText().trim(),
-                    Double.parseDouble(score.getText().trim()),
-                    Double.parseDouble(weight.getText().trim())
-            );
-
-            JOptionPane.showMessageDialog(this, ok ? "Saved" : "Failed");
-
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Please fill fields correctly.");
-        }
-    });
-
+        });
 
         p.add(form, BorderLayout.CENTER);
         return p;
     }
 
-    private JPanel finalGradesPanel() {
+    // ----------------------------------------------------------
+    // FINAL GRADES PANEL
+    // ----------------------------------------------------------
+    private JPanel makeFinalGradesPanel() {
         JPanel p = new JPanel(new BorderLayout());
-        p.add(makeTopPanel("Compute Final Grades"), BorderLayout.NORTH);
+        JPanel top = makeTopPanel("Final Grades");
 
-        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JTextField sect = new JTextField(8);
-        top.add(new JLabel("Section ID:")); top.add(sect);
-        JButton load = new JButton("Compute");
-        top.add(load);
+        JButton refresh = new JButton("Refresh Grades");
+        refresh.addActionListener(e -> loadFinalGradesTable(p));
+        ((JPanel) top.getComponent(1)).add(refresh);
+
         p.add(top, BorderLayout.NORTH);
 
-        load.addActionListener(e -> {
-            try {
-                var map = instructor.computeFinalGrades(Integer.parseInt(sect.getText().trim()));
-                if (map.isEmpty()) {
-                    centerTable.setModel(new javax.swing.table.DefaultTableModel());
-                    JOptionPane.showMessageDialog(this, "No grades found.");
-                    return;
-                }
-                // turn map into table model
-                javax.swing.table.DefaultTableModel model = new javax.swing.table.DefaultTableModel(new String[]{"Student ID","Final Grade"}, 0);
-                map.forEach((k,v) -> model.addRow(new Object[]{k, String.format("%.2f", v)}));
-                centerTable.setModel(model);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Enter a valid section id.");
-            }
-        });
-
+        loadFinalGradesTable(p);
         return p;
     }
 
-    private JPanel statsPanel() {
-        JPanel p = new JPanel(new BorderLayout());
-        p.add(makeTopPanel("Class Stats"), BorderLayout.NORTH);
+    // UTILITY: Loads data for Final Grades and updates the panel
+    private void loadFinalGradesTable(JPanel panel) {
+        javax.swing.table.DefaultTableModel model =
+            new javax.swing.table.DefaultTableModel(
+                new String[]{"Section ID", "Student ID", "Final Grade"}, 0
+            );
 
-        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JTextField sect = new JTextField(8);
-        top.add(new JLabel("Section ID:")); top.add(sect);
-        JButton load = new JButton("Load Stats");
-        top.add(load);
-        p.add(top, BorderLayout.NORTH);
+        try (Connection conn = DBConnection.getErpConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT section_id FROM sections WHERE instructor_id = ?")) {
 
-        load.addActionListener(e -> {
-            try {
-                Map<String, Double> stats = instructor.getClassStats(Integer.parseInt(sect.getText().trim()));
-                if (stats.isEmpty()) {
-                    centerTable.setModel(new javax.swing.table.DefaultTableModel());
-                    JOptionPane.showMessageDialog(this, "No data.");
-                    return;
+            stmt.setInt(1, instructorId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    int sec = rs.getInt(1);
+                    // InstructorCommands does not have an ID state, relying on its internal check
+                    Map<Integer, Double> grades = instructor.computeFinalGrades(sec);
+
+                    for (var entry : grades.entrySet()) {
+                        model.addRow(new Object[]{
+                                sec,
+                                entry.getKey(),
+                                String.format("%.2f", entry.getValue())
+                        });
+                    }
                 }
-                javax.swing.table.DefaultTableModel model = new javax.swing.table.DefaultTableModel(new String[]{"Metric","Value"}, 0);
-                model.addRow(new Object[]{"Average", String.format("%.2f", stats.get("average"))});
-                model.addRow(new Object[]{"Min", String.format("%.2f", stats.get("min"))});
-                model.addRow(new Object[]{"Max", String.format("%.2f", stats.get("max"))});
-                centerTable.setModel(model);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Enter a valid section id.");
             }
-        });
-
-        return p;
-    }
-
-    // preserve your original resolver
-    private int getInstructorIdByUsername(String username) {
-    String sql =
-        "SELECT i.user_id FROM instructors i " +
-        "JOIN auth_db.users u ON i.user_id = u.id " +
-        "WHERE u.username = ?";
-
-    try (java.sql.Connection conn = edu.univ.erp.data.DBConnection.getErpConnection();
-         java.sql.PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-        stmt.setString(1, username);
-        java.sql.ResultSet rs = stmt.executeQuery();
-        if (rs.next()) {
-            return rs.getInt("user_id");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-    return -1;
-}
 
+        JTable table = new JTable(model);
+        JScrollPane newScroll = new JScrollPane(table);
+
+        Component centerComponent = ((BorderLayout) panel.getLayout()).getLayoutComponent(BorderLayout.CENTER);
+        if (centerComponent instanceof JScrollPane) {
+            panel.remove(centerComponent);
+        }
+        panel.add(newScroll, BorderLayout.CENTER);
+        panel.revalidate();
+        panel.repaint();
+    }
+
+
+    // ----------------------------------------------------------
+    // CLASS STATS PANEL
+    // ----------------------------------------------------------
+    private JPanel makeStatsPanel() {
+        JPanel p = new JPanel(new BorderLayout());
+        JPanel top = makeTopPanel("Class Stats");
+
+        JButton refresh = new JButton("Refresh Stats");
+        refresh.addActionListener(e -> loadStatsTable(p));
+        ((JPanel) top.getComponent(1)).add(refresh);
+
+        p.add(top, BorderLayout.NORTH);
+
+        loadStatsTable(p);
+        return p;
+    }
+
+    // UTILITY: Loads data for Stats and updates the panel
+    private void loadStatsTable(JPanel panel) {
+        javax.swing.table.DefaultTableModel model =
+            new javax.swing.table.DefaultTableModel(
+                new String[]{"Section ID", "Average Score", "Min Score", "Max Score"}, 0
+            );
+
+        try (Connection conn = DBConnection.getErpConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT section_id FROM sections WHERE instructor_id = ?")) {
+
+            stmt.setInt(1, instructorId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    int sec = rs.getInt(1);
+                    Map<String, Double> stats = instructor.getClassStats(sec);
+
+                    if (!stats.isEmpty()) {
+                        model.addRow(new Object[]{
+                                sec,
+                                String.format("%.2f", stats.get("average")),
+                                String.format("%.2f", stats.get("min")),
+                                String.format("%.2f", stats.get("max"))
+                        });
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        JTable table = new JTable(model);
+        JScrollPane newScroll = new JScrollPane(table);
+
+        Component centerComponent = ((BorderLayout) panel.getLayout()).getLayoutComponent(BorderLayout.CENTER);
+        if (centerComponent instanceof JScrollPane) {
+            panel.remove(centerComponent);
+        }
+        panel.add(newScroll, BorderLayout.CENTER);
+        panel.revalidate();
+        panel.repaint();
+    }
+
+    // ----------------------------------------------------------
+    // EDIT SECTION PANEL
+    // ----------------------------------------------------------
+    private JPanel makeEditSectionPanel() {
+        JPanel p = new JPanel(new BorderLayout());
+        p.add(makeTopPanel("Edit Section"), BorderLayout.NORTH);
+
+        JPanel form = new JPanel(new GridLayout(4, 2, 10, 10));
+        form.setBorder(new EmptyBorder(20, 80, 20, 80));
+
+        JComboBox<String> fieldBox = new JComboBox<>(new String[]{"day_time", "capacity"});
+        JTextField value = new JTextField();
+        JTextField sectionId = new JTextField();
+
+        form.add(new JLabel("Field to Edit:")); form.add(fieldBox);
+        form.add(new JLabel("New Value:")); form.add(value);
+        form.add(new JLabel("Section ID:")); form.add(sectionId);
+
+        JButton update = new JButton("Apply Update");
+        form.add(new JLabel());
+        form.add(update);
+
+        update.addActionListener(e -> {
+            try {
+                // --- Maintenance Check for Edit Section ---
+                MaintenanceMode mm = new MaintenanceMode();
+                if (mm.isEnabled()) {
+                    JOptionPane.showMessageDialog(this, "System under maintenance. Cannot modify section data.");
+                    return;
+                }
+                
+                String field = fieldBox.getSelectedItem().toString();
+
+                // Smartly determine if the value is an Integer or String
+                Object val = field.equals("capacity")
+                        ? Integer.parseInt(value.getText().trim())
+                        : value.getText().trim();
+
+                boolean ok = instructor.editSection(field, val, Integer.parseInt(sectionId.getText().trim()));
+                JOptionPane.showMessageDialog(this, ok ? "Section updated." : "Update failed. Check Section ID.");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Invalid data. Check Section ID and value format.");
+            }
+        });
+
+        p.add(form, BorderLayout.CENTER);
+        return p;
+    }
+
+    // --- DATA FETCH: Instructor ID ---
+    private int getInstructorIdByUsername(String username) {
+        String sql = "SELECT i.user_id FROM instructors i JOIN auth_db.users u ON i.user_id = u.id WHERE u.username = ?";
+        try (Connection conn = DBConnection.getErpConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, username);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return rs.getInt("user_id");
+            }
+        } catch (Exception e) {
+             e.printStackTrace();
+        }
+        return -1;
+    }
+
+    // --- UTILITY: Card Switcher ---
+    private void showCard(String name) {
+        cards.show(cardPanel, name);
+    }
 }

@@ -5,6 +5,11 @@ import java.sql.*;
 import java.util.*;
 
 public class InstructorCommands {
+    // private int instructorId;
+
+    // public InstructorCommands(int instructorId) {
+    //     this.instructorId = instructorId;
+    // }
 
     public ResultSet getMySections(int instructorId, String semester, int year) {
         String sql = "SELECT * FROM sections WHERE instructor_id = ? AND semester = ? AND year = ?";
