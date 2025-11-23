@@ -151,6 +151,7 @@ public class InstructorDashboard extends JFrame {
                 "• Department faculty meet next week.\n" +
                 "• Update attendance regularly.\n"
         );
+        
         msgs.setEditable(false);
         msgs.setBackground(new Color(250, 250, 250));
         msgs.setFont(new Font("SansSerif", Font.PLAIN, 14));

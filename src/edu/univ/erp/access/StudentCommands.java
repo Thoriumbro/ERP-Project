@@ -169,32 +169,62 @@ public class StudentCommands {
 
 
     // 5. View grades
-    public ResultSet viewGrades(int studentId) {
-        try {
-            Connection conn = DBConnection.getErpConnection();
-            PreparedStatement stmt = conn.prepareStatement(
-                "(SELECT section_id, assessment, score, weight, NULL AS final_grade " +
-                " FROM scores " +
-                " WHERE student_id = ?) " +
-                "UNION ALL " +
-                "(SELECT section_id, 'Final Grade' AS assessment, NULL AS score, NULL AS weight, " +
-                "        SUM(score * (weight / 100)) AS final_grade " +
-                " FROM scores " +
-                " WHERE student_id = ? " +
-                " GROUP BY section_id) " +
-                "ORDER BY section_id, final_grade IS NULL DESC, assessment"
-            );
+        public ResultSet viewGrades(int studentId) {
+    try {
+        Connection conn = DBConnection.getErpConnection();
+        PreparedStatement stmt = conn.prepareStatement(
 
-            stmt.setInt(1, studentId);
-            stmt.setInt(2, studentId);
+            "SELECT section_id, assessment, score, weight, final " +          // ONLY visible columns
+            "FROM (" +
 
-            return stmt.executeQuery();
+            // COMPONENT ROWS
+            "   SELECT sc.section_id, sc.assessment, sc.score, sc.weight, " +
+            "          (sc.score * (sc.weight / 100.0)) AS final, " +         // component final
+            "          fg.final_grade AS section_final, " +
+            "          0 AS is_summary " +
+            "   FROM scores sc " +
+            "   JOIN ( " +
+            "       SELECT section_id, SUM(score * (weight / 100.0)) AS final_grade " +
+            "       FROM scores " +
+            "       WHERE student_id = ? " +
+            "       GROUP BY section_id " +
+            "   ) fg ON sc.section_id = fg.section_id " +
+            "   WHERE sc.student_id = ? " +
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+            "   UNION ALL " +
+
+            // SUMMARY ROWS
+            "   SELECT fg.section_id, " +
+            "          CONCAT('Final Grade ') AS assessment, " +
+            "          NULL AS score, " +
+            "          NULL AS weight, " +
+            "          fg.final_grade AS final, " +           // section final shown only here
+            "          fg.final_grade AS section_final, " +
+            "          1 AS is_summary " +
+            "   FROM ( " +
+            "       SELECT section_id, SUM(score * (weight / 100.0)) AS final_grade " +
+            "       FROM scores " +
+            "       WHERE student_id = ? " +
+            "       GROUP BY section_id " +
+            "   ) fg " +
+
+            ") AS t " +   // end subquery wrapper
+            "ORDER BY t.section_id, t.is_summary, t.assessment"
+        );
+
+        stmt.setInt(1, studentId); // fg (component rows)
+        stmt.setInt(2, studentId); // sc
+        stmt.setInt(3, studentId); // fg (summary rows)
+
+        return stmt.executeQuery();
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        return null;
     }
+}
+
+
 
     public boolean exportGradesToCSV(int studentId, String filePath) {
         String[] headers = {"Section ID", "Assessment", "Score", "Weight", "Final Grade" };
