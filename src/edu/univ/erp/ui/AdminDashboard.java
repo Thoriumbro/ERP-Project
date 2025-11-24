@@ -1,6 +1,8 @@
 package edu.univ.erp.ui;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+
 import java.awt.*;
 import java.sql.ResultSet;
 
@@ -123,9 +125,39 @@ public class AdminDashboard extends JFrame {
 
     // ---------------- CENTER AREA ------------------
     JPanel center = new JPanel();
-    center.setLayout(new BorderLayout());
+    center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
+
     center.setBorder(BorderFactory.createEmptyBorder(20, 40, 40, 40));
     center.setBackground(new Color(245, 247, 246));
+
+    // --- Maintenance Mode Banner ---
+    // --- Maintenance Mode Banner with Animation ---
+    MaintenanceMode mm = new MaintenanceMode();
+        if (mm.isEnabled()) {
+
+            JPanel warnPanel = new JPanel(new BorderLayout());
+            warnPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25)); // ← half height
+            warnPanel.setOpaque(true);
+            warnPanel.setBackground(new Color(255, 200, 200));
+            warnPanel.setBorder(new EmptyBorder(4, 10, 4, 10)); // tighten padding
+
+            JLabel warn = new JLabel("⚠ The system is currently under Maintenance Mode.", SwingConstants.CENTER);
+            warn.setFont(new Font("SansSerif", Font.BOLD, 16));
+            warn.setForeground(Color.RED);
+
+            warnPanel.add(warn, BorderLayout.CENTER);
+
+            // --- Animation (Blink Effect Every 700 ms) ---
+            Timer blink = new Timer(700, ev -> {
+                if (warn.getForeground().equals(Color.RED))
+                    warn.setForeground(new Color(180, 0, 0));   // darker red
+                else
+                    warn.setForeground(Color.RED);
+            });
+            blink.start();
+
+            center.add(warnPanel, BorderLayout.NORTH);
+        }
 
 
     // ----------- Big Stats Row ---------------
@@ -492,6 +524,50 @@ public class AdminDashboard extends JFrame {
         p.add(form, BorderLayout.CENTER);
         p.add(add, BorderLayout.SOUTH);
 
+                //-----------------------------------------------------------
+        // EDIT COURSE PANEL (ADDED)
+        //-----------------------------------------------------------
+        JPanel editPanel = new JPanel(new GridLayout(4, 2, 8, 8));
+        editPanel.setBorder(BorderFactory.createTitledBorder("Edit Course"));
+
+        String[] allowedCourseFields = {"title", "credits", "deadline"};
+        JComboBox<String> courseField = new JComboBox<>(allowedCourseFields);
+        JTextField courseNewValue = new JTextField();
+        JTextField courseCodeField = new JTextField();
+
+        editPanel.add(new JLabel("Field:")); editPanel.add(courseField);
+        editPanel.add(new JLabel("New Value:")); editPanel.add(courseNewValue);
+        editPanel.add(new JLabel("Course Code:")); editPanel.add(courseCodeField);
+
+        JButton applyCourseEdit = new JButton("Apply Update");
+        applyCourseEdit.addActionListener(e -> {
+            try {
+                String fld = (String) courseField.getSelectedItem();
+                String codeVal = courseCodeField.getText().trim();
+                String newVal = courseNewValue.getText().trim();
+
+                Object parsedValue = newVal;
+                if ("credits".equals(fld)) {
+                    parsedValue = Integer.parseInt(newVal);
+                } else if ("deadline".equals(fld)) {
+                    parsedValue = java.time.LocalDate.parse(newVal);
+                }
+
+                boolean ok = admin.editCourse(fld, parsedValue, codeVal);
+                JOptionPane.showMessageDialog(this, ok ? "Course updated." : "Update failed.");
+
+                if (ok) loadCourses();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Invalid data.");
+            }
+        });
+
+        editPanel.add(new JLabel());
+        editPanel.add(applyCourseEdit);
+
+        p.add(editPanel, BorderLayout.EAST);
+
+
         return p;
     }
 
@@ -543,6 +619,49 @@ public class AdminDashboard extends JFrame {
 
         p.add(form, BorderLayout.CENTER);
         p.add(create, BorderLayout.SOUTH);
+
+        //-----------------------------------------------------------
+        // EDIT SECTION PANEL (ADDED)
+        //-----------------------------------------------------------
+        JPanel editPanel = new JPanel(new GridLayout(4, 2, 8, 8));
+        editPanel.setBorder(BorderFactory.createTitledBorder("Edit Section"));
+
+        String[] allowedSecFields = {"day_time", "room", "capacity", "semester", "year", "instructor_id"};
+        JComboBox<String> secField = new JComboBox<>(allowedSecFields);
+        JTextField secNewValue = new JTextField();
+        JTextField secId = new JTextField();
+
+        editPanel.add(new JLabel("Field:")); editPanel.add(secField);
+        editPanel.add(new JLabel("New Value:")); editPanel.add(secNewValue);
+        editPanel.add(new JLabel("Section ID:")); editPanel.add(secId);
+
+        JButton applySectionEdit = new JButton("Apply Update");
+        applySectionEdit.addActionListener(e -> {
+            try {
+                String fld = (String) secField.getSelectedItem();
+                String newVal = secNewValue.getText().trim();
+                int idVal = Integer.parseInt(secId.getText().trim());
+
+                Object parsedValue = newVal;
+                if (fld.equals("capacity") || fld.equals("year") || fld.equals("instructor_id")) {
+                    parsedValue = Integer.parseInt(newVal);
+                }
+
+                boolean ok = admin.editSection(fld, parsedValue, idVal);
+                JOptionPane.showMessageDialog(this, ok ? "Section updated." : "Update failed.");
+
+                if (ok) loadSections();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Invalid data.");
+            }
+        });
+
+        editPanel.add(new JLabel());
+        editPanel.add(applySectionEdit);
+
+        p.add(editPanel, BorderLayout.EAST);
+
+
         return p;
     }
 

@@ -119,10 +119,42 @@ public class InstructorDashboard extends JFrame {
         home.add(top, BorderLayout.NORTH);
 
         // center
-        JPanel center = new JPanel(new BorderLayout());
+        JPanel center = new JPanel();
+        center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
+
         center.setBorder(new EmptyBorder(20, 40, 40, 40));
         center.setBackground(new Color(245, 247, 246));
 
+        // --- Maintenance Mode Banner ---
+        // --- Maintenance Mode Banner with Animation ---
+        MaintenanceMode mm = new MaintenanceMode();
+        if (mm.isEnabled()) {
+
+            JPanel warnPanel = new JPanel(new BorderLayout());
+            warnPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25)); // ← half height
+            warnPanel.setOpaque(true);
+            warnPanel.setBackground(new Color(255, 200, 200));
+            warnPanel.setBorder(new EmptyBorder(4, 10, 4, 10)); // tighten padding
+
+            JLabel warn = new JLabel("⚠ The system is currently under Maintenance Mode.", SwingConstants.CENTER);
+            warn.setFont(new Font("SansSerif", Font.BOLD, 16));
+            warn.setForeground(Color.RED);
+
+            warnPanel.add(warn, BorderLayout.CENTER);
+
+            // --- Animation (Blink Effect Every 700 ms) ---
+            Timer blink = new Timer(700, ev -> {
+                if (warn.getForeground().equals(Color.RED))
+                    warn.setForeground(new Color(180, 0, 0));   // darker red
+                else
+                    warn.setForeground(Color.RED);
+            });
+            blink.start();
+
+            center.add(warnPanel, BorderLayout.NORTH);
+        }
+
+        
         // stats row
         JPanel statsRow = new JPanel(new GridLayout(1, 2, 20, 20));
         statsRow.setOpaque(false);
@@ -276,6 +308,11 @@ public class InstructorDashboard extends JFrame {
         ((JPanel) top.getComponent(1)).add(refresh);
         p.add(top, BorderLayout.NORTH);
 
+        // --- PANEL TO HOLD BOTH TABLES ---
+        JPanel centerPanel = new JPanel(new GridLayout(2, 1));
+        p.add(centerPanel, BorderLayout.CENTER);
+
+
         // Initial setup for the table
         loadSectionsTable(p);
 
@@ -297,13 +334,17 @@ public class InstructorDashboard extends JFrame {
                     JScrollPane newScroll = new JScrollPane(table);
 
                     // Remove existing table component if present
-                    Component centerComponent = ((BorderLayout) panel.getLayout()).getLayoutComponent(BorderLayout.CENTER);
-                    if (centerComponent instanceof JScrollPane) {
-                        panel.remove(centerComponent);
-                    }
-                    panel.add(newScroll, BorderLayout.CENTER);
-                    panel.revalidate();
-                    panel.repaint();
+                    // Place SECTIONS table in upper grid cell
+                    JPanel centerPanel = (JPanel) panel.getComponent(1); // panel added earlier
+                    Component oldTop = centerPanel.getComponentCount() > 0 ? centerPanel.getComponent(0) : null;
+                    if (oldTop != null) centerPanel.remove(oldTop);
+
+                    centerPanel.add(newScroll, 0);
+                    centerPanel.revalidate();
+                    centerPanel.repaint();
+
+                    // ALSO load the students under these sections
+                    loadEnrolledStudentsTable(centerPanel);
                 }
             }
         } catch (Exception e) {
@@ -320,6 +361,60 @@ public class InstructorDashboard extends JFrame {
             panel.repaint();
         }
     }
+
+    // ---------------------------------------------------------
+    // NEW: LOAD ENROLLED STUDENTS TABLE (with heading)
+    // ---------------------------------------------------------
+    private void loadEnrolledStudentsTable(JPanel centerPanel) {
+
+        try {
+            String sql =
+                "SELECT e.section_id, e.student_id, s.name AS student_name " +
+                "FROM enrollments e " +
+                "JOIN students s ON e.student_id = s.user_id " +
+                "JOIN sections sec ON e.section_id = sec.section_id " +
+                "WHERE sec.instructor_id = ? " +
+                "ORDER BY e.section_id, e.student_id";
+
+            try (Connection conn = DBConnection.getErpConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+                stmt.setInt(1, instructorId);
+
+                try (ResultSet rs = stmt.executeQuery()) {
+
+                    JTable table = TableUtils.buildStyledTable(rs);
+                    JScrollPane scroll = new JScrollPane(table);
+
+                    // ------------------------------
+                    // WRAP TABLE WITH HEADING PANEL
+                    // ------------------------------
+                    JPanel wrapper = new JPanel(new BorderLayout());
+                    wrapper.setBorder(new EmptyBorder(20, 10, 10, 10)); // pushes table LOWER
+
+                    JLabel title = new JLabel("Enrolled Students");
+                    title.setFont(new Font("SansSerif", Font.BOLD, 16));
+                    title.setBorder(new EmptyBorder(0, 5, 10, 0));
+
+                    wrapper.add(title, BorderLayout.NORTH);
+                    wrapper.add(scroll, BorderLayout.CENTER);
+
+                    // ------------------------------
+                    // PLACE THIS WRAPPER IN LOWER SLOT
+                    // ------------------------------
+                    if (centerPanel.getComponentCount() > 1)
+                        centerPanel.remove(1);
+
+                    centerPanel.add(wrapper, 1);
+                    centerPanel.revalidate();
+                    centerPanel.repaint();
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
 
 
     // ----------------------------------------------------------

@@ -134,9 +134,42 @@ public class StudentDashboard extends JFrame {
         JPanel home = new JPanel(new BorderLayout());
         home.add(makeTopPanel("Student Dashboard"), BorderLayout.NORTH);
 
-        JPanel center = new JPanel(new BorderLayout());
+        JPanel center = new JPanel();
+        center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
+
         center.setBorder(new EmptyBorder(20, 40, 40, 40));
         center.setBackground(new Color(245, 247, 246));
+
+        // --- Maintenance Mode Banner ---
+        // --- Maintenance Mode Banner with Animation ---
+        MaintenanceMode mm = new MaintenanceMode();
+        if (mm.isEnabled()) {
+
+            JPanel warnPanel = new JPanel(new BorderLayout());
+            warnPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25)); // ← half height
+            warnPanel.setOpaque(true);
+            warnPanel.setBackground(new Color(255, 200, 200));
+            warnPanel.setBorder(new EmptyBorder(4, 10, 4, 10)); // tighten padding
+
+
+            JLabel warn = new JLabel("⚠ The system is currently under Maintenance Mode.", SwingConstants.CENTER);
+            warn.setFont(new Font("SansSerif", Font.BOLD, 16));
+            warn.setForeground(Color.RED);
+
+            warnPanel.add(warn, BorderLayout.CENTER);
+
+            // --- Animation (Blink Effect Every 700 ms) ---
+            Timer blink = new Timer(700, ev -> {
+                if (warn.getForeground().equals(Color.RED))
+                    warn.setForeground(new Color(180, 0, 0));  // darker red
+                else
+                    warn.setForeground(Color.RED);
+            });
+            blink.start();
+
+            center.add(warnPanel, BorderLayout.NORTH);
+        }
+
 
         // ----- Stats Row -----
         JPanel stats = new JPanel(new GridLayout(1, 2, 20, 20));
