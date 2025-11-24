@@ -1,4 +1,4 @@
-package edu.univ.erp.auth;
+package edu.univ.erp.access;
 
 import edu.univ.erp.data.DBConnection;
 import java.sql.Connection;

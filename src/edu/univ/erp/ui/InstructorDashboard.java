@@ -6,8 +6,8 @@ import java.awt.*;
 import java.sql.*;
 import java.util.Map;
 
-import edu.univ.erp.access.InstructorCommands;
-import edu.univ.erp.auth.MaintenanceMode;
+import edu.univ.erp.service.InstructorCommands;
+import edu.univ.erp.access.MaintenanceMode;
 import edu.univ.erp.data.DBConnection;
 
 public class InstructorDashboard extends JFrame {
@@ -20,10 +20,12 @@ public class InstructorDashboard extends JFrame {
     private final InstructorCommands instructor = new InstructorCommands();
 
     private final int instructorId;
+    private final String name;
 
     public InstructorDashboard(String username) {
 
         this.instructorId = getInstructorIdByUsername(username);
+        this.name = username;
 
         setTitle("Instructor Dashboard - University ERP");
         setSize(1100, 700);
@@ -114,7 +116,7 @@ public class InstructorDashboard extends JFrame {
         home.setBackground(new Color(245, 247, 246));
 
         // top bar (customized for Home)
-        JPanel top = makeTopPanel("Instructor Dashboard");
+        JPanel top = makeTopPanel("Welcome Instructor "+ name.toUpperCase());
         top.getComponent(0).setFont(new Font("SansSerif", Font.BOLD, 26)); // set larger font for title
         home.add(top, BorderLayout.NORTH);
 
@@ -624,9 +626,31 @@ public class InstructorDashboard extends JFrame {
                 String field = fieldBox.getSelectedItem().toString();
 
                 // Smartly determine if the value is an Integer or String
-                Object val = field.equals("capacity")
-                        ? Integer.parseInt(value.getText().trim())
-                        : value.getText().trim();
+                Object val;
+
+                // If editing capacity → validate it
+                if (field.equals("capacity")) {
+
+                    int cap;
+                    try {
+                        cap = Integer.parseInt(value.getText().trim());
+                    } catch (NumberFormatException ex) {
+                        JOptionPane.showMessageDialog(this, "Capacity must be a valid number.");
+                        return;
+                    }
+
+                    if (cap <= 0) {
+                        JOptionPane.showMessageDialog(this, "Capacity must be greater than 0.");
+                        return;
+                    }
+
+                    val = cap;
+                } 
+                else {
+                    // day_time is a string
+                    val = value.getText().trim();
+                }
+
 
                 boolean ok = instructor.editSection(field, val, Integer.parseInt(sectionId.getText().trim()));
                 JOptionPane.showMessageDialog(this, ok ? "Section updated." : "Update failed. Check Section ID.");

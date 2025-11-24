@@ -7,15 +7,15 @@ public class TestConnection {
         try (Connection authCon = DBConnection.getAuthConnection();
              Connection erpCon = DBConnection.getErpConnection()) {
             if (authCon != null) {
-                System.out.println("✅ Connected to auth_db successfully!");
+                System.out.println("Connected to auth_db successfully!");
             } else {
-                System.out.println("❌ Failed to connect to auth_db.");
+                System.out.println("Failed to connect to auth_db.");
             }
 
             if (erpCon != null) {
-                System.out.println("✅ Connected to erp_db successfully!");
+                System.out.println("Connected to erp_db successfully!");
             } else {
-                System.out.println("❌ Failed to connect to erp_db.");
+                System.out.println("Failed to connect to erp_db.");
             }
 
         } catch (Exception e) {

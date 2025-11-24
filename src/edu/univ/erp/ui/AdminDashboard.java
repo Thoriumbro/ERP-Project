@@ -6,9 +6,9 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.sql.ResultSet;
 
-import edu.univ.erp.access.AdminCommands;
+import edu.univ.erp.service.AdminCommands;
 import edu.univ.erp.data.DBConnection;
-import edu.univ.erp.auth.MaintenanceMode;
+import edu.univ.erp.access.MaintenanceMode;
 
 public class AdminDashboard extends JFrame {
     private CardLayout cards = new CardLayout();
@@ -600,15 +600,24 @@ public class AdminDashboard extends JFrame {
         JButton create = new JButton("Create Section");
         create.addActionListener(e -> {
             try {
+                int cap = Integer.parseInt(capacity.getText().trim());
+
+                // ---- Capacity validation ----
+                if (cap <= 0) {
+                    JOptionPane.showMessageDialog(this, "Invalid capacity. Must be greater than 0.");
+                    return;   // stop execution here
+                }
+
                 boolean ok = admin.addSection(
                         courseCode.getText().trim(),
                         Integer.parseInt(instructorId.getText().trim()),
                         dayTime.getText().trim(),
                         room.getText().trim(),
-                        Integer.parseInt(capacity.getText().trim()),
+                        cap,   // already validated
                         semester.getText().trim(),
                         Integer.parseInt(year.getText().trim())
                 );
+
                 JOptionPane.showMessageDialog(this, ok ? "Section added." : "Failed.");
                 if (ok) loadSections();
 
@@ -643,9 +652,27 @@ public class AdminDashboard extends JFrame {
                 int idVal = Integer.parseInt(secId.getText().trim());
 
                 Object parsedValue = newVal;
+
+                // ---- validation for numeric fields ----
                 if (fld.equals("capacity") || fld.equals("year") || fld.equals("instructor_id")) {
-                    parsedValue = Integer.parseInt(newVal);
+
+                    int num;
+                    try {
+                        num = Integer.parseInt(newVal);
+                    } catch (NumberFormatException ex) {
+                        JOptionPane.showMessageDialog(this, "Value must be a valid number.");
+                        return;
+                    }
+
+                    // ---- capacity extra rule ----
+                    if (fld.equals("capacity") && num <= 0) {
+                        JOptionPane.showMessageDialog(this, "Capacity must be greater than 0.");
+                        return;
+                    }
+
+                    parsedValue = num;
                 }
+
 
                 boolean ok = admin.editSection(fld, parsedValue, idVal);
                 JOptionPane.showMessageDialog(this, ok ? "Section updated." : "Update failed.");

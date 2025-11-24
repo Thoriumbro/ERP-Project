@@ -5,8 +5,8 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.sql.ResultSet;
 
-import edu.univ.erp.access.StudentCommands;
-import edu.univ.erp.auth.MaintenanceMode;
+import edu.univ.erp.service.StudentCommands;
+import edu.univ.erp.access.MaintenanceMode;
 import edu.univ.erp.data.DBConnection;
 
 public class StudentDashboard extends JFrame {
@@ -16,10 +16,12 @@ public class StudentDashboard extends JFrame {
 
     private final StudentCommands student = new StudentCommands();
     private final int studentId;
+    private final String name;
 
     public StudentDashboard(String username) {
 
         this.studentId = getStudentId(username);
+        this.name = username;
 
         setTitle("Student Dashboard - University ERP");
         setSize(1100, 700);
@@ -132,7 +134,7 @@ public class StudentDashboard extends JFrame {
 
     private JPanel makeHomePanel() {
         JPanel home = new JPanel(new BorderLayout());
-        home.add(makeTopPanel("Student Dashboard"), BorderLayout.NORTH);
+        home.add(makeTopPanel("Welcome Student "+name.toUpperCase()), BorderLayout.NORTH);
 
         JPanel center = new JPanel();
         center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));

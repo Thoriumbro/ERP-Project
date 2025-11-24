@@ -1,4 +1,4 @@
-package edu.univ.erp.access;
+package edu.univ.erp.service;
 
 import edu.univ.erp.data.DBConnection;
 
@@ -19,7 +19,8 @@ public class StudentCommands {
                 "s.semester, s.year " +
                 "FROM sections s " +
                 "JOIN courses c ON s.course_id = c.code " +
-                "JOIN instructors i ON s.instructor_id = i.user_id"
+                "JOIN instructors i ON s.instructor_id = i.user_id " +
+                "WHERE s.capacity > 0"
             );
             return stmt.executeQuery();
         } catch (Exception e) {
@@ -66,21 +67,46 @@ public class StudentCommands {
                 }
             }
 
-            // 3. Capacity check
+            // 3. *** DEADLINE CHECK (NEW CODE) ***
+            String deadlineQuery = """
+                SELECT c.deadline
+                FROM courses c
+                JOIN sections s ON s.course_id = c.code
+                WHERE s.section_id = ?
+            """;
+
+            try (PreparedStatement stmt = conn.prepareStatement(deadlineQuery)) {
+                stmt.setInt(1, sectionId);
+                ResultSet rs = stmt.executeQuery();
+
+                if (rs.next()) {
+                    java.sql.Date deadline = rs.getDate("deadline");
+                    java.sql.Date today = java.sql.Date.valueOf(java.time.LocalDate.now());
+
+                    if (today.after(deadline)) {
+                        System.out.println("Registration denied. Deadline passed.");
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            }
+
+            // 4. Capacity check
             try (PreparedStatement stmt = conn.prepareStatement(checkCapacity)) {
                 stmt.setInt(1, sectionId);
                 ResultSet rs = stmt.executeQuery();
                 if (rs.next() && rs.getInt("capacity") <= 0) return false;
             }
 
-            // 4. Insert enrollment
+            // 5. Insert enrollment
             try (PreparedStatement stmt = conn.prepareStatement(insert)) {
                 stmt.setInt(1, studentId);
                 stmt.setInt(2, sectionId);
                 stmt.executeUpdate();
             }
 
-            // 5. Decrease capacity
+            // 6. Decrease capacity
             try (PreparedStatement stmt = conn.prepareStatement(reduceCapacity)) {
                 stmt.setInt(1, sectionId);
                 stmt.executeUpdate();
@@ -134,7 +160,21 @@ public class StudentCommands {
             deleteStmt.setInt(1, studentId);
             deleteStmt.setInt(2, sectionId);
 
-            return deleteStmt.executeUpdate() > 0;
+            int removed = deleteStmt.executeUpdate();
+
+            if (removed > 0) {
+
+                // 🔥 Step 4: Increase capacity after drop
+                String increaseCapacity = "UPDATE sections SET capacity = capacity + 1 WHERE section_id = ?";
+                try (PreparedStatement incStmt = conn.prepareStatement(increaseCapacity)) {
+                    incStmt.setInt(1, sectionId);
+                    incStmt.executeUpdate();
+                }
+
+                return true;
+            }
+
+            return false;
 
         } catch (Exception e) {
             e.printStackTrace();
