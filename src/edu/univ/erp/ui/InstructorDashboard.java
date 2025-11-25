@@ -432,6 +432,21 @@ public class InstructorDashboard extends JFrame {
         });
 
         p.add(form, BorderLayout.CENTER);
+        JButton export = new JButton("Export Scores to CSV");
+        export.addActionListener(e -> {
+            JFileChooser fc = new JFileChooser();
+            if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+
+                String filePath = fc.getSelectedFile().getAbsolutePath();
+
+                boolean ok = instructor.exportScoresToCSV(instructorId, filePath);
+
+                JOptionPane.showMessageDialog(this,
+                        ok ? "Exported successfully." : "Export failed.");
+            }
+        });
+
+        p.add(export, BorderLayout.SOUTH);
         return p;
     }
 

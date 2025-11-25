@@ -127,38 +127,36 @@ public class InstructorCommands {
         }
     }
 
-    public boolean exportGradesToCSVForInstructor(int sectionId, String filePath) {
-        String[] headers = {"Student ID", "Assessment", "Score", "Weight", "Final Grade"};
-
-        String query =
-                "(SELECT student_id, assessment, score, weight, NULL AS final_grade " +
-                    "FROM scores WHERE section_id = ?) " +
-                "UNION ALL " +
-                "(SELECT student_id, 'Final Grade' AS assessment, NULL AS score, NULL AS weight, " +
-                    "SUM(score * (weight / 100)) AS final_grade " +
-                    "FROM scores WHERE section_id = ? GROUP BY student_id) " +
-                "ORDER BY student_id, final_grade IS NULL DESC, assessment";
+    public boolean exportScoresToCSV(int instructorId, String filePath) {
+        String sql = """
+            SELECT s.section_id, sc.student_id, sc.assessment, sc.score, sc.weight
+            FROM sections s
+            JOIN scores sc ON s.section_id = sc.section_id
+            WHERE s.instructor_id = ?
+            ORDER BY s.section_id, sc.student_id
+        """;
 
         try (Connection conn = DBConnection.getErpConnection();
-            PreparedStatement stmt = conn.prepareStatement(query);
-            FileWriter writer = new FileWriter(filePath)) {
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, sectionId);
-            stmt.setInt(2, sectionId);
-
+            stmt.setInt(1, instructorId);
             ResultSet rs = stmt.executeQuery();
 
-            writer.append(String.join(",", headers)).append("\n");
+            java.io.FileWriter writer = new java.io.FileWriter(filePath);
+
+            writer.write("Section ID, Student ID, Assessment, Score, Weight\n");
 
             while (rs.next()) {
-                writer.append(rs.getString("student_id")).append(",");
-                writer.append(rs.getString("assessment")).append(",");
-                writer.append(rs.getString("score") == null ? "" : rs.getString("score")).append(",");
-                writer.append(rs.getString("weight") == null ? "" : rs.getString("weight")).append(",");
-                writer.append(rs.getString("final_grade") == null ? "" : rs.getString("final_grade")).append("\n");
+                writer.write(
+                    rs.getInt("section_id") + "," +
+                    rs.getInt("student_id") + "," +
+                    rs.getString("assessment") + "," +
+                    rs.getDouble("score") + "," +
+                    rs.getDouble("weight") + "\n"
+                );
             }
 
-            writer.flush();
+            writer.close();
             return true;
 
         } catch (Exception e) {
