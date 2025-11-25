@@ -4,13 +4,13 @@ import javax.swing.*;
 
 import edu.univ.erp.auth.*;
 import edu.univ.erp.data.DBConnection;
+import edu.univ.erp.util.ChangePassword;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-
-
 
 import com.formdev.flatlaf.FlatLightLaf;
 
@@ -19,6 +19,8 @@ public class LoginApp extends JFrame {
     JTextField usernameField;
     JPasswordField passwordField;
     JButton loginButton;
+    JButton changePasswordButton; 
+
 
     public LoginApp() {
 
@@ -111,8 +113,17 @@ public class LoginApp extends JFrame {
         styleButton(loginButton);
         loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         centerPanel.add(loginButton);
+        centerPanel.add(Box.createVerticalStrut(15));
+
+        // NEW: Change Password button
+        changePasswordButton = new JButton("Change Password");
+        styleButton(changePasswordButton);
+        changePasswordButton.setBackground(new Color(100, 100, 140)); // slight difference
+        changePasswordButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        centerPanel.add(changePasswordButton);
 
         centerPanel.add(Box.createVerticalStrut(20));
+
         mainPanel.add(topPanel, BorderLayout.NORTH);
         mainPanel.add(centerPanel, BorderLayout.CENTER);
         add(mainPanel);
@@ -170,6 +181,12 @@ public class LoginApp extends JFrame {
                 }
             }
         });
+
+        changePasswordButton.addActionListener(e -> {
+            new ChangePassword(); // Opens your change password screen
+            dispose(); // Close login window (optional)
+        });
+
 
         setVisible(true);
     }

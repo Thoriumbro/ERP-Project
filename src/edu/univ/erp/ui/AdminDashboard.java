@@ -2,13 +2,16 @@ package edu.univ.erp.ui;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-
 import java.awt.*;
 import java.sql.ResultSet;
+import java.time.ZoneId;
 
 import edu.univ.erp.service.AdminCommands;
 import edu.univ.erp.data.DBConnection;
 import edu.univ.erp.access.MaintenanceMode;
+import com.toedter.calendar.JDateChooser;
+import java.util.Date;
+// import java.time.LocalDate;
 
 public class AdminDashboard extends JFrame {
     private CardLayout cards = new CardLayout();
@@ -492,25 +495,32 @@ public class AdminDashboard extends JFrame {
         JTextField code = new JTextField();
         JTextField title = new JTextField();
         JTextField credits = new JTextField();
-        JTextField deadline = new JTextField();
-        deadline.setToolTipText("Format: YYYY-MM-DD");
+        JDateChooser dateChooser = new JDateChooser();
+        dateChooser.setDate(new java.util.Date());
 
         form.add(new JLabel("Code:")); form.add(code);
         form.add(new JLabel("Title:")); form.add(title);
         form.add(new JLabel("Credits:")); form.add(credits);
-        form.add(new JLabel("Deadline (YYYY-MM-DD):")); form.add(deadline);
+        form.add(new JLabel("Deadline:")); form.add(dateChooser);
 
         JButton add = new JButton("Add Course");
         add.addActionListener(e -> {
             try {
-                java.time.LocalDate parsed =
-                        java.time.LocalDate.parse(deadline.getText().trim());
+                Date utilDate = dateChooser.getDate();
+
+                Date today = new Date();
+                if (utilDate.before(today)) {
+                    JOptionPane.showMessageDialog(this, "Deadline cannot be a past date.");
+                    return;
+                }
+
+                java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
 
                 boolean ok = admin.addCourse(
                         code.getText().trim(),
                         title.getText().trim(),
                         Integer.parseInt(credits.getText().trim()),
-                        java.sql.Date.valueOf(parsed)
+                        sqlDate
                 );
 
                 JOptionPane.showMessageDialog(this, ok ? "Course added." : "Failed.");
@@ -521,13 +531,14 @@ public class AdminDashboard extends JFrame {
             }
         });
 
+
         p.add(form, BorderLayout.CENTER);
         p.add(add, BorderLayout.SOUTH);
 
                 //-----------------------------------------------------------
         // EDIT COURSE PANEL (ADDED)
         //-----------------------------------------------------------
-        JPanel editPanel = new JPanel(new GridLayout(4, 2, 8, 8));
+        JPanel editPanel = new JPanel(new GridLayout(5, 2, 8, 8));
         editPanel.setBorder(BorderFactory.createTitledBorder("Edit Course"));
 
         String[] allowedCourseFields = {"title", "credits", "deadline"};
@@ -535,32 +546,66 @@ public class AdminDashboard extends JFrame {
         JTextField courseNewValue = new JTextField();
         JTextField courseCodeField = new JTextField();
 
-        editPanel.add(new JLabel("Field:")); editPanel.add(courseField);
-        editPanel.add(new JLabel("New Value:")); editPanel.add(courseNewValue);
-        editPanel.add(new JLabel("Course Code:")); editPanel.add(courseCodeField);
+        JDateChooser datepick = new JDateChooser();
+        datepick.setEnabled(false);
+
+        courseField.addActionListener(e -> {
+            if ("deadline".equals(courseField.getSelectedItem())) {
+                courseNewValue.setEnabled(false);
+                datepick.setEnabled(true);
+            } else {
+                courseNewValue.setEnabled(true);
+                datepick.setEnabled(false);
+            }
+        });
+
+        editPanel.add(new JLabel("Field:")); 
+        editPanel.add(courseField);
+        editPanel.add(new JLabel("New Value:")); 
+        editPanel.add(courseNewValue);
+        editPanel.add(new JLabel("Pick Date (if deadline):")); 
+        editPanel.add(datepick);
+        editPanel.add(new JLabel("Course Code:")); 
+        editPanel.add(courseCodeField);
 
         JButton applyCourseEdit = new JButton("Apply Update");
+
         applyCourseEdit.addActionListener(e -> {
             try {
                 String fld = (String) courseField.getSelectedItem();
                 String codeVal = courseCodeField.getText().trim();
-                String newVal = courseNewValue.getText().trim();
 
-                Object parsedValue = newVal;
+                Object parsedValue;
+
                 if ("credits".equals(fld)) {
-                    parsedValue = Integer.parseInt(newVal);
-                } else if ("deadline".equals(fld)) {
-                    parsedValue = java.time.LocalDate.parse(newVal);
+                    parsedValue = Integer.parseInt(courseNewValue.getText().trim());
+                } 
+                else if ("deadline".equals(fld)) {
+                    Date utilDate = datepick.getDate();
+                    if (utilDate == null) {
+                        JOptionPane.showMessageDialog(this, "Select a date.");
+                        return;
+                    }
+                    Date today = new Date();
+                    if (utilDate.before(today)) {
+                        JOptionPane.showMessageDialog(this, "Deadline cannot be in the past.");
+                        return;
+                    }
+                    parsedValue = utilDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                } 
+                else {
+                    parsedValue = courseNewValue.getText().trim();
                 }
 
                 boolean ok = admin.editCourse(fld, parsedValue, codeVal);
                 JOptionPane.showMessageDialog(this, ok ? "Course updated." : "Update failed.");
-
                 if (ok) loadCourses();
+
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Invalid data.");
             }
         });
+
 
         editPanel.add(new JLabel());
         editPanel.add(applyCourseEdit);
