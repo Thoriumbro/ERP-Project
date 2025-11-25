@@ -7,7 +7,6 @@ public class User {
     private String status;  
 
     public User() {
-        // no-arg constructor (needed for frameworks or when loading from DB)
     }
 
     public User(int userId, String username, String role, String status) {

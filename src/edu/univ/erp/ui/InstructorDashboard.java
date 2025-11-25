@@ -162,7 +162,7 @@ public class InstructorDashboard extends JFrame {
         statsRow.setOpaque(false);
 
         statsRow.add(makeStatCard("My Sections", getInstructorSectionCount()));
-        statsRow.add(makeStatCard("Students Taught", getInstructorStudentCount()));
+        statsRow.add(makeStatCard("Students Enrolled", getInstructorStudentCount()));
 
         center.add(statsRow, BorderLayout.NORTH);
 
@@ -171,7 +171,7 @@ public class InstructorDashboard extends JFrame {
         lower.setOpaque(false);
         lower.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
 
-        // ----------- 📢 Announcements Panel ----------------
+        // -----------  Announcements Panel ----------------
         JPanel ann = new JPanel(new BorderLayout());
         ann.setBackground(Color.WHITE);
         ann.setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -195,7 +195,7 @@ public class InstructorDashboard extends JFrame {
         ann.add(msgs, BorderLayout.CENTER);
 
 
-        // ----------- ⚡ Quick Actions Panel ----------------
+        // -----------  Quick Actions Panel ----------------
         JPanel actions = new JPanel();
         actions.setLayout(new BoxLayout(actions, BoxLayout.Y_AXIS));
         actions.setBackground(Color.WHITE);

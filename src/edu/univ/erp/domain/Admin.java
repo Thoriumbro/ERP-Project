@@ -3,7 +3,6 @@ package edu.univ.erp.domain;
 public class Admin extends User {
 
     public Admin() {
-        // no-arg constructor
     }
 
     public Admin(int userId, String username, String status) {

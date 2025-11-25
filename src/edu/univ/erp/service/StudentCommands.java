@@ -57,7 +57,7 @@ public class StudentCommands {
 
             // 2. Check if already registered in ANOTHER section of SAME COURSE
             try (PreparedStatement stmt = conn.prepareStatement(sameCourseCheck)) {
-                stmt.setInt(1, sectionId); // s2.section_id
+                stmt.setInt(1, sectionId); 
                 stmt.setInt(2, studentId);
 
                 ResultSet rs = stmt.executeQuery();
@@ -67,7 +67,7 @@ public class StudentCommands {
                 }
             }
 
-            // 3. *** DEADLINE CHECK (NEW CODE) ***
+            // 3. DEADLINE CHECK 
             String deadlineQuery = """
                 SELECT c.deadline
                 FROM courses c
@@ -120,8 +120,6 @@ public class StudentCommands {
         }
     }
 
-
-
     // 3. Drop a section
     public boolean dropSection(int studentId, int sectionId) {
 
@@ -138,7 +136,6 @@ public class StudentCommands {
             PreparedStatement checkStmt = conn.prepareStatement(checkDeadlineQuery);
             PreparedStatement deleteStmt = conn.prepareStatement(deleteQuery)) {
 
-            // Step 1: check deadline exists
             checkStmt.setInt(1, sectionId);
             ResultSet rs = checkStmt.executeQuery();
 
@@ -150,13 +147,11 @@ public class StudentCommands {
             java.sql.Date deadline = rs.getDate("deadline");
             java.sql.Date today = java.sql.Date.valueOf(java.time.LocalDate.now());
 
-            // Step 2: block dropping after deadline
             if (today.after(deadline)) {
                 System.out.println("Cannot drop. Deadline passed.");
                 return false;
             }
 
-            // Step 3: drop section
             deleteStmt.setInt(1, studentId);
             deleteStmt.setInt(2, sectionId);
 
@@ -164,7 +159,6 @@ public class StudentCommands {
 
             if (removed > 0) {
 
-                // 🔥 Step 4: Increase capacity after drop
                 String increaseCapacity = "UPDATE sections SET capacity = capacity + 1 WHERE section_id = ?";
                 try (PreparedStatement incStmt = conn.prepareStatement(increaseCapacity)) {
                     incStmt.setInt(1, sectionId);
@@ -181,8 +175,6 @@ public class StudentCommands {
             return false;
         }
     }
-
-
 
     // 4. View timetable
     public ResultSet viewTimetable(int studentId) {
@@ -207,14 +199,13 @@ public class StudentCommands {
         }
     }
 
-
     // 5. View grades
         public ResultSet viewGrades(int studentId) {
     try {
         Connection conn = DBConnection.getErpConnection();
         PreparedStatement stmt = conn.prepareStatement(
 
-            "SELECT section_id, assessment, score, weight, final " +          // ONLY visible columns
+            "SELECT section_id, assessment, score, weight, final " +          
             "FROM (" +
 
             // COMPONENT ROWS
@@ -238,7 +229,7 @@ public class StudentCommands {
             "          CONCAT('Final Grade ') AS assessment, " +
             "          NULL AS score, " +
             "          NULL AS weight, " +
-            "          fg.final_grade AS final, " +           // section final shown only here
+            "          fg.final_grade AS final, " +           
             "          fg.final_grade AS section_final, " +
             "          1 AS is_summary " +
             "   FROM ( " +
@@ -248,13 +239,13 @@ public class StudentCommands {
             "       GROUP BY section_id " +
             "   ) fg " +
 
-            ") AS t " +   // end subquery wrapper
+            ") AS t " +   
             "ORDER BY t.section_id, t.is_summary, t.assessment"
         );
 
-        stmt.setInt(1, studentId); // fg (component rows)
-        stmt.setInt(2, studentId); // sc
-        stmt.setInt(3, studentId); // fg (summary rows)
+        stmt.setInt(1, studentId); 
+        stmt.setInt(2, studentId);
+        stmt.setInt(3, studentId); 
 
         return stmt.executeQuery();
 
@@ -289,7 +280,6 @@ public class StudentCommands {
 
             ResultSet rs = stmt.executeQuery();
 
-            // Write CSV header
             writer.append(String.join(",", headers)).append("\n");
 
             // Write rows

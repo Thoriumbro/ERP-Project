@@ -15,18 +15,7 @@ public class DBConnection {
     private static final String URL_ERP = "jdbc:mysql://localhost:3306/erp_db";
     private static final String USER = "root";            
     private static final String PASSWORD = "qwertyuiop";
-
-    static {
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver"); 
-        } catch (ClassNotFoundException e) {
-            System.out.println("JDBC Driver not found: " + e.getMessage());
-        }
-    }
-
-    /** 
-     * Connects to auth_db (for login & roles)
-     */
+       
     public static Connection getAuthConnection() {
         try {
             return DriverManager.getConnection(URL_AUTH, USER, PASSWORD);
@@ -36,9 +25,7 @@ public class DBConnection {
         }
     }
 
-    /**
-     * Connects to erp_db (for student, instructor, courses)
-     */
+
     public static Connection getErpConnection() {
         try {
             return DriverManager.getConnection(URL_ERP, USER, PASSWORD);

@@ -4,7 +4,6 @@ public class Instructor extends User {
     private String department;  
 
     public Instructor() {
-        // no-arg constructor
     }
 
     public Instructor(int userId, String username, String status, String department) {

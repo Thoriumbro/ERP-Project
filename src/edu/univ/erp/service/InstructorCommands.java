@@ -1,16 +1,13 @@
 package edu.univ.erp.service;
 
 import edu.univ.erp.data.DBConnection;
+
+import java.io.FileWriter;
 import java.sql.*;
 import java.util.*;
 
 public class InstructorCommands {
-    // private int instructorId;
-
-    // public InstructorCommands(int instructorId) {
-    //     this.instructorId = instructorId;
-    // }
-
+    
     public ResultSet getMySections(int instructorId, String semester, int year) {
         String sql = "SELECT * FROM sections WHERE instructor_id = ? AND semester = ? AND year = ?";
 
@@ -22,7 +19,7 @@ public class InstructorCommands {
             stmt.setString(2, semester);
             stmt.setInt(3, year);
 
-            return stmt.executeQuery();  // return ResultSet directly
+            return stmt.executeQuery(); 
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -45,7 +42,7 @@ public class InstructorCommands {
                 ResultSet rs = checkStmt.executeQuery();
                 if (!rs.next()) {
                     System.out.println("Student not enrolled — cannot save score.");
-                    return false; // student not registered in this section
+                    return false; 
                 }
             }
 
@@ -130,20 +127,42 @@ public class InstructorCommands {
         }
     }
 
-    public boolean addAssessmentComponent(int sectionId, String name, double weight) {
-        String sql = "INSERT INTO assessment_components (section_id, name, weight) VALUES (?, ?, ?)";
+    public boolean exportGradesToCSVForInstructor(int sectionId, String filePath) {
+        String[] headers = {"Student ID", "Assessment", "Score", "Weight", "Final Grade"};
+
+        String query =
+                "(SELECT student_id, assessment, score, weight, NULL AS final_grade " +
+                    "FROM scores WHERE section_id = ?) " +
+                "UNION ALL " +
+                "(SELECT student_id, 'Final Grade' AS assessment, NULL AS score, NULL AS weight, " +
+                    "SUM(score * (weight / 100)) AS final_grade " +
+                    "FROM scores WHERE section_id = ? GROUP BY student_id) " +
+                "ORDER BY student_id, final_grade IS NULL DESC, assessment";
 
         try (Connection conn = DBConnection.getErpConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            PreparedStatement stmt = conn.prepareStatement(query);
+            FileWriter writer = new FileWriter(filePath)) {
 
             stmt.setInt(1, sectionId);
-            stmt.setString(2, name);
-            stmt.setDouble(3, weight);
+            stmt.setInt(2, sectionId);
 
-            return stmt.executeUpdate() > 0;
+            ResultSet rs = stmt.executeQuery();
+
+            writer.append(String.join(",", headers)).append("\n");
+
+            while (rs.next()) {
+                writer.append(rs.getString("student_id")).append(",");
+                writer.append(rs.getString("assessment")).append(",");
+                writer.append(rs.getString("score") == null ? "" : rs.getString("score")).append(",");
+                writer.append(rs.getString("weight") == null ? "" : rs.getString("weight")).append(",");
+                writer.append(rs.getString("final_grade") == null ? "" : rs.getString("final_grade")).append("\n");
+            }
+
+            writer.flush();
+            return true;
 
         } catch (Exception e) {
-            System.out.println("Error adding assessment component: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }

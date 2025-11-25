@@ -11,7 +11,6 @@ import edu.univ.erp.data.DBConnection;
 import edu.univ.erp.access.MaintenanceMode;
 import com.toedter.calendar.JDateChooser;
 import java.util.Date;
-// import java.time.LocalDate;
 
 public class AdminDashboard extends JFrame {
     private CardLayout cards = new CardLayout();
@@ -93,15 +92,14 @@ public class AdminDashboard extends JFrame {
         return wrapper;
     }
 
-    //-----------------------------------------------------------
+    
     // HOME PANEL
-    //-----------------------------------------------------------
     private JPanel makeHomePanel() {
 
     JPanel home = new JPanel(new BorderLayout());
     home.setBackground(new Color(245, 247, 246));
 
-    // ---------------- TOP BAR ------------------
+    // TOP AREA
     JPanel top = new JPanel(new BorderLayout());
     top.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
     top.setBackground(new Color(245, 247, 246));
@@ -126,23 +124,22 @@ public class AdminDashboard extends JFrame {
     home.add(top, BorderLayout.NORTH);
 
 
-    // ---------------- CENTER AREA ------------------
+    // CENTER AREA 
     JPanel center = new JPanel();
     center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
 
     center.setBorder(BorderFactory.createEmptyBorder(20, 40, 40, 40));
     center.setBackground(new Color(245, 247, 246));
 
-    // --- Maintenance Mode Banner ---
-    // --- Maintenance Mode Banner with Animation ---
-    MaintenanceMode mm = new MaintenanceMode();
-        if (mm.isEnabled()) {
+    // Maintenance Mode Banner 
+        MaintenanceMode mm = new MaintenanceMode();
+            if (mm.isEnabled()) {
 
             JPanel warnPanel = new JPanel(new BorderLayout());
-            warnPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25)); // ← half height
+            warnPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25)); 
             warnPanel.setOpaque(true);
             warnPanel.setBackground(new Color(255, 200, 200));
-            warnPanel.setBorder(new EmptyBorder(4, 10, 4, 10)); // tighten padding
+            warnPanel.setBorder(new EmptyBorder(4, 10, 4, 10)); 
 
             JLabel warn = new JLabel("⚠ The system is currently under Maintenance Mode.", SwingConstants.CENTER);
             warn.setFont(new Font("SansSerif", Font.BOLD, 16));
@@ -150,10 +147,10 @@ public class AdminDashboard extends JFrame {
 
             warnPanel.add(warn, BorderLayout.CENTER);
 
-            // --- Animation (Blink Effect Every 700 ms) ---
+            // Blinking effect
             Timer blink = new Timer(700, ev -> {
                 if (warn.getForeground().equals(Color.RED))
-                    warn.setForeground(new Color(180, 0, 0));   // darker red
+                    warn.setForeground(new Color(180, 0, 0));   
                 else
                     warn.setForeground(Color.RED);
             });
@@ -163,7 +160,7 @@ public class AdminDashboard extends JFrame {
         }
 
 
-    // ----------- Big Stats Row ---------------
+    //Big Stats Row 
     JPanel statsRow = new JPanel(new GridLayout(1, 3, 20, 20));
     statsRow.setOpaque(false);
 
@@ -174,13 +171,13 @@ public class AdminDashboard extends JFrame {
     center.add(statsRow, BorderLayout.NORTH);
 
 
-    // ------------ LOWER GRID (Announcements + Actions) ----------------
+    //(Announcements + Actions)
     JPanel lower = new JPanel(new GridLayout(1, 2, 20, 20));
     lower.setOpaque(false);
     lower.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
 
 
-    // ----------- Announcements Panel ----------------
+    //Announcements Panel 
     JPanel ann = new JPanel();
     ann.setLayout(new BorderLayout());
     ann.setBackground(Color.WHITE);
@@ -203,7 +200,7 @@ public class AdminDashboard extends JFrame {
     ann.add(msgs, BorderLayout.CENTER);
 
 
-    // ----------- Quick Actions Panel ----------------
+    //Quick Actions Panel 
     JPanel actions = new JPanel();
     actions.setLayout(new BoxLayout(actions, BoxLayout.Y_AXIS));
     actions.setBackground(Color.WHITE);
@@ -242,7 +239,7 @@ public class AdminDashboard extends JFrame {
 
     home.add(center, BorderLayout.CENTER);
     return home;
-}
+    }
 
 
     private JPanel makeStatCard(String title, int count) {
@@ -290,23 +287,17 @@ public class AdminDashboard extends JFrame {
         return 0;
     }
 
-    //-----------------------------------------------------------
     // USERS PANEL
-    //-----------------------------------------------------------
     private JPanel makeUsersPanel() {
 
     JPanel main = new JPanel(new BorderLayout());
     main.add(makeTopPanel("Manage Users"), BorderLayout.NORTH);
 
-    // ======================================================
-    // 1) CREATE A CARDLAYOUT FOR: SELECTION SCREEN + 3 FORMS
-    // ======================================================
     CardLayout userCards = new CardLayout();
     JPanel container = new JPanel(userCards);
 
-    // ------------------------------------------------------
-    // SCREEN A: SELECTION PAGE (3 SKY-BLUE OPTION BUBBLES)
-    // ------------------------------------------------------
+    // SCREEN A: SELECTION PAGE 
+    
     JPanel selectScreen = new JPanel(new GridBagLayout());
     selectScreen.setBackground(new Color(245, 247, 246));
 
@@ -319,9 +310,7 @@ public class AdminDashboard extends JFrame {
 
     selectScreen.add(optionsRow);
 
-    // ------------------------------------------------------
     // SCREEN B1: STUDENT FORM
-    // ------------------------------------------------------
     JPanel studentForm = new JPanel(new BorderLayout(12,12));
     studentForm.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
@@ -370,10 +359,7 @@ public class AdminDashboard extends JFrame {
 
     studentForm.add(left, BorderLayout.CENTER);
 
-
-    // ------------------------------------------------------
     // SCREEN B2: INSTRUCTOR FORM
-    // ------------------------------------------------------
     JPanel instructorForm = new JPanel(new BorderLayout(12,12));
     instructorForm.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
@@ -410,10 +396,7 @@ public class AdminDashboard extends JFrame {
 
     instructorForm.add(rightI, BorderLayout.CENTER);
 
-
-    // ------------------------------------------------------
     // SCREEN B3: ADMIN FORM
-    // ------------------------------------------------------
     JPanel adminForm = new JPanel(new BorderLayout(12,12));
     adminForm.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
@@ -442,15 +425,12 @@ public class AdminDashboard extends JFrame {
     adminForm.add(rightA, BorderLayout.CENTER);
 
 
-    // ------------------------------------------------------
-    // ADD ALL SCREENS TO CARDLAYOUT
-    // ------------------------------------------------------
     container.add(selectScreen, "select");
     container.add(studentForm, "student");
     container.add(instructorForm, "instructor");
     container.add(adminForm, "admin");
 
-    userCards.show(container, "select"); // default first screen
+    userCards.show(container, "select"); 
 
     main.add(container, BorderLayout.CENTER);
     return main;
@@ -460,7 +440,7 @@ public class AdminDashboard extends JFrame {
 
     JPanel bubble = new JPanel();
     bubble.setPreferredSize(new Dimension(180, 180));
-    bubble.setBackground(new Color(173, 216, 230)); // sky blue
+    bubble.setBackground(new Color(173, 216, 230)); 
     bubble.setBorder(BorderFactory.createLineBorder(new Color(120, 170, 200), 2));
     bubble.setLayout(new GridBagLayout());
 
@@ -481,10 +461,7 @@ public class AdminDashboard extends JFrame {
     return bubble;
 }
 
-
-    //-----------------------------------------------------------
-    // COURSES PANEL (DEADLINE INCLUDED)
-    //-----------------------------------------------------------
+    // COURSES PANEL
     private JPanel makeCoursesPanel() {
         JPanel p = new JPanel(new BorderLayout(12, 12));
         p.add(makeTopPanel("Courses"), BorderLayout.NORTH);
@@ -535,9 +512,7 @@ public class AdminDashboard extends JFrame {
         p.add(form, BorderLayout.CENTER);
         p.add(add, BorderLayout.SOUTH);
 
-                //-----------------------------------------------------------
-        // EDIT COURSE PANEL (ADDED)
-        //-----------------------------------------------------------
+        // EDIT COURSE PANEL
         JPanel editPanel = new JPanel(new GridLayout(5, 2, 8, 8));
         editPanel.setBorder(BorderFactory.createTitledBorder("Edit Course"));
 
@@ -616,10 +591,8 @@ public class AdminDashboard extends JFrame {
         return p;
     }
 
-    //-----------------------------------------------------------
     // SECTIONS PANEL
-    //-----------------------------------------------------------
-    private JPanel makeSectionsPanel() {
+        private JPanel makeSectionsPanel() {
         JPanel p = new JPanel(new BorderLayout());
         p.add(makeTopPanel("Sections"), BorderLayout.NORTH);
 
@@ -647,10 +620,9 @@ public class AdminDashboard extends JFrame {
             try {
                 int cap = Integer.parseInt(capacity.getText().trim());
 
-                // ---- Capacity validation ----
                 if (cap <= 0) {
                     JOptionPane.showMessageDialog(this, "Invalid capacity. Must be greater than 0.");
-                    return;   // stop execution here
+                    return;   
                 }
 
                 boolean ok = admin.addSection(
@@ -658,7 +630,7 @@ public class AdminDashboard extends JFrame {
                         Integer.parseInt(instructorId.getText().trim()),
                         dayTime.getText().trim(),
                         room.getText().trim(),
-                        cap,   // already validated
+                        cap, 
                         semester.getText().trim(),
                         Integer.parseInt(year.getText().trim())
                 );
@@ -674,9 +646,7 @@ public class AdminDashboard extends JFrame {
         p.add(form, BorderLayout.CENTER);
         p.add(create, BorderLayout.SOUTH);
 
-        //-----------------------------------------------------------
-        // EDIT SECTION PANEL (ADDED)
-        //-----------------------------------------------------------
+        // EDIT SECTION PANEL
         JPanel editPanel = new JPanel(new GridLayout(4, 2, 8, 8));
         editPanel.setBorder(BorderFactory.createTitledBorder("Edit Section"));
 
@@ -698,7 +668,6 @@ public class AdminDashboard extends JFrame {
 
                 Object parsedValue = newVal;
 
-                // ---- validation for numeric fields ----
                 if (fld.equals("capacity") || fld.equals("year") || fld.equals("instructor_id")) {
 
                     int num;
@@ -709,7 +678,6 @@ public class AdminDashboard extends JFrame {
                         return;
                     }
 
-                    // ---- capacity extra rule ----
                     if (fld.equals("capacity") && num <= 0) {
                         JOptionPane.showMessageDialog(this, "Capacity must be greater than 0.");
                         return;
@@ -737,9 +705,7 @@ public class AdminDashboard extends JFrame {
         return p;
     }
 
-    //-----------------------------------------------------------
     // SETTINGS PANEL
-    //-----------------------------------------------------------
     private JPanel makeSettingsPanel() {
         JPanel p = new JPanel(new BorderLayout());
         p.add(makeTopPanel("Settings"), BorderLayout.NORTH);
@@ -769,9 +735,7 @@ public class AdminDashboard extends JFrame {
         return p;
     }
 
-    //-----------------------------------------------------------
-    // UTILITY: Add form row
-    //-----------------------------------------------------------
+    // Add form row
     private void addFormRow(JPanel parent, String label, JComponent field) {
         JPanel row = new JPanel(new BorderLayout(6, 6));
         row.setOpaque(false);
@@ -788,9 +752,7 @@ public class AdminDashboard extends JFrame {
         parent.add(Box.createVerticalStrut(6));
     }
 
-    //-----------------------------------------------------------
     // DATA LOADING HELPERS
-    //-----------------------------------------------------------
     private void loadUsers() {
         try (var conn = DBConnection.getAuthConnection();
              var stmt = conn.prepareStatement("SELECT id, username, role, last_login FROM auth_db.users");
@@ -831,10 +793,7 @@ public class AdminDashboard extends JFrame {
         }
     }
 
-    //-----------------------------------------------------------
-    // ROUTING: Show panel + preload its data
-    //-----------------------------------------------------------
-    private void showCard(String name) {
+        private void showCard(String name) {
         switch (name) {
             case "Users":    loadUsers(); break;
             case "Courses":  loadCourses(); break;

@@ -6,7 +6,6 @@ public class Student extends User{
     private int year;         
 
     public Student() {
-        // no-arg constructor
     }
 
     public Student(int userId, String username, String status, String rollNo, String program, int year) {

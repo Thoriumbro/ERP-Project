@@ -110,7 +110,6 @@ public class AdminCommands {
             stmt.setString(2, title);
             stmt.setInt(3, credits);
 
-            // Convert util.Date to sql.Date
             stmt.setDate(4, new java.sql.Date(deadline.getTime()));
 
             return stmt.executeUpdate() > 0;
@@ -125,7 +124,6 @@ public class AdminCommands {
 
 
     public boolean editCourse(String field, Object newValue, String code) {
-        // Allowed fields to prevent SQL injection
         Set<String> allowed = Set.of("title", "credits", "deadline");
         if (!allowed.contains(field)) return false;
 
