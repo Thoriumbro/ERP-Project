@@ -18,7 +18,6 @@ public class TableUtils {
         table.setFont(new Font("SansSerif", Font.PLAIN, 14));
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        // Alternate row colors (zebra striping)
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(
@@ -39,7 +38,6 @@ public class TableUtils {
             }
         });
 
-        // Header styling
         JTableHeader header = table.getTableHeader();
         header.setBackground(new Color(230, 230, 230));
         header.setFont(new Font("SansSerif", Font.BOLD, 14));
@@ -60,7 +58,7 @@ public class TableUtils {
             DefaultTableModel model = new DefaultTableModel(cols, 0) {
                 @Override
                 public boolean isCellEditable(int r, int c) {
-                    return false; // entire table non-editable
+                    return false; 
                 }
             };
 

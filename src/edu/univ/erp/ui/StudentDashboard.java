@@ -29,7 +29,7 @@ public class StudentDashboard extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // ---------------- SIDEBAR ----------------
+        // SIDEBAR
         JPanel sidebar = new JPanel(new GridLayout(0, 1, 10, 10));
         sidebar.setBackground(new Color(31, 67, 59));
         sidebar.setBorder(BorderFactory.createEmptyBorder(20, 12, 20, 12));
@@ -50,7 +50,6 @@ public class StudentDashboard extends JFrame {
             sidebar.add(b);
         }
 
-        // ---------------- PANELS ----------------
         cardPanel.add(makeHomePanel(), "Home");
         cardPanel.add(makeCourseCatalogPanel(), "Course Catalog");
         cardPanel.add(makeRegisterPanel(), "Register");
@@ -64,10 +63,6 @@ public class StudentDashboard extends JFrame {
         showCard("Home");
         setVisible(true);
     }
-
-    // --------------------------------------------------
-    // UTILITY METHODS
-    // --------------------------------------------------
 
     private void styleSidebarButton(JButton b) {
         b.setBackground(new Color(60, 135, 110));
@@ -128,10 +123,7 @@ public class StudentDashboard extends JFrame {
         cards.show(cardPanel, name);
     }
 
-    // --------------------------------------------------
-    // HOME PANEL
-    // --------------------------------------------------
-
+    // HOME
     private JPanel makeHomePanel() {
         JPanel home = new JPanel(new BorderLayout());
         home.add(makeTopPanel("Welcome Student "+name.toUpperCase()), BorderLayout.NORTH);
@@ -142,16 +134,15 @@ public class StudentDashboard extends JFrame {
         center.setBorder(new EmptyBorder(20, 40, 40, 40));
         center.setBackground(new Color(245, 247, 246));
 
-        // --- Maintenance Mode Banner ---
-        // --- Maintenance Mode Banner with Animation ---
+        // Maintenance Mode
         MaintenanceMode mm = new MaintenanceMode();
         if (mm.isEnabled()) {
 
             JPanel warnPanel = new JPanel(new BorderLayout());
-            warnPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25)); // ← half height
+            warnPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25)); 
             warnPanel.setOpaque(true);
             warnPanel.setBackground(new Color(255, 200, 200));
-            warnPanel.setBorder(new EmptyBorder(4, 10, 4, 10)); // tighten padding
+            warnPanel.setBorder(new EmptyBorder(4, 10, 4, 10)); 
 
 
             JLabel warn = new JLabel("⚠ The system is currently under Maintenance Mode.", SwingConstants.CENTER);
@@ -160,10 +151,9 @@ public class StudentDashboard extends JFrame {
 
             warnPanel.add(warn, BorderLayout.CENTER);
 
-            // --- Animation (Blink Effect Every 700 ms) ---
             Timer blink = new Timer(700, ev -> {
                 if (warn.getForeground().equals(Color.RED))
-                    warn.setForeground(new Color(180, 0, 0));  // darker red
+                    warn.setForeground(new Color(180, 0, 0));
                 else
                     warn.setForeground(Color.RED);
             });
@@ -172,8 +162,6 @@ public class StudentDashboard extends JFrame {
             center.add(warnPanel, BorderLayout.NORTH);
         }
 
-
-        // ----- Stats Row -----
         JPanel stats = new JPanel(new GridLayout(1, 2, 20, 20));
         stats.setOpaque(false);
 
@@ -182,12 +170,10 @@ public class StudentDashboard extends JFrame {
 
         center.add(stats, BorderLayout.NORTH);
 
-        // ----- Announcements + Actions -----
         JPanel lower = new JPanel(new GridLayout(1, 2, 20, 20));
         lower.setOpaque(false);
         lower.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
 
-        // announcements
         JTextArea ann = new JTextArea(
                 "• Course registration closes soon.\n" +
                 "• Mid-semester exams approaching.\n" +
@@ -203,7 +189,6 @@ public class StudentDashboard extends JFrame {
         annPanel.add(new JLabel("Announcements"), BorderLayout.NORTH);
         annPanel.add(ann, BorderLayout.CENTER);
 
-        // quick actions
         JPanel actions = new JPanel();
         actions.setLayout(new BoxLayout(actions, BoxLayout.Y_AXIS));
         actions.setBackground(Color.WHITE);
@@ -294,10 +279,8 @@ public class StudentDashboard extends JFrame {
         return 0;
     }
 
-    // --------------------------------------------------
-    // COURSE CATALOG PANEL
-    // --------------------------------------------------
-
+    
+    // COURSE CATALOG 
     private JPanel makeCourseCatalogPanel() {
         JPanel p = new JPanel(new BorderLayout());
         p.add(makeTopPanel("Course Catalog"), BorderLayout.NORTH);
@@ -316,10 +299,7 @@ public class StudentDashboard extends JFrame {
         return p;
     }
 
-    // --------------------------------------------------
-    // REGISTER PANEL
-    // --------------------------------------------------
-
+    // REGISTER
     private JPanel makeRegisterPanel() {
         JPanel p = new JPanel(new BorderLayout());
         p.add(makeTopPanel("Register for Section"), BorderLayout.NORTH);
@@ -361,10 +341,7 @@ public class StudentDashboard extends JFrame {
         return p;
     }
 
-    // --------------------------------------------------
-    // DROP PANEL
-    // --------------------------------------------------
-
+    // DROP 
     private JPanel makeDropPanel() {
         JPanel p = new JPanel(new BorderLayout());
         p.add(makeTopPanel("Drop Course"), BorderLayout.NORTH);
@@ -392,7 +369,6 @@ public class StudentDashboard extends JFrame {
                 JOptionPane.showMessageDialog(this,
                         ok ? "Course dropped." : "Drop denied.");
 
-                // AUTO REFRESH
                 refreshHomeStats();
                 refreshTimetable();
 
@@ -406,10 +382,7 @@ public class StudentDashboard extends JFrame {
         return p;
     }
 
-    // --------------------------------------------------
-    // TIMETABLE PANEL
-    // --------------------------------------------------
-
+    // TIMETABLE 
     private JPanel makeTimetablePanel() {
         JPanel p = new JPanel(new BorderLayout());
         p.add(makeTopPanel("My Timetable"), BorderLayout.NORTH);
@@ -426,10 +399,7 @@ public class StudentDashboard extends JFrame {
         return p;
     }
 
-    // --------------------------------------------------
-    // GRADES PANEL
-    // --------------------------------------------------
-
+    // GRADES
     private JPanel makeGradesPanel() {
         JPanel p = new JPanel(new BorderLayout());
         p.add(makeTopPanel("My Grades"), BorderLayout.NORTH);
@@ -461,9 +431,7 @@ public class StudentDashboard extends JFrame {
         return p;
     }
 
-    // ---------------------------------------------------------
-    // REFRESH HOME STATS
-    // ---------------------------------------------------------
+    // REFRESH 
     private void refreshHomeStats() {
         JPanel home = (JPanel) cardPanel.getComponent(0);
         JPanel center = (JPanel) home.getComponent(1);
@@ -478,13 +446,10 @@ public class StudentDashboard extends JFrame {
         statsRow.repaint();
     }
 
-    // ---------------------------------------------------------
     // REFRESH TIMETABLE TABLE
-    // ---------------------------------------------------------
     private void refreshTimetable() {
         JPanel timePanel = (JPanel) cardPanel.getComponent(4);
 
-        // remove old table
         Component[] comps = timePanel.getComponents();
         for (Component c : comps) {
             if (c instanceof JScrollPane) {

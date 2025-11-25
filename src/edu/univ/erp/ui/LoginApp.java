@@ -33,7 +33,7 @@ public class LoginApp extends JFrame {
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(new Color(230, 240, 236));
 
-        // ---------------- TOP ----------------
+        // TOP
         JPanel topPanel = new JPanel();
         topPanel.setPreferredSize(new Dimension(420, 250));
         topPanel.setBackground(Color.WHITE);
@@ -56,7 +56,7 @@ public class LoginApp extends JFrame {
 
         topPanel.add(Box.createVerticalStrut(20));
 
-        // ---------------- CENTER ----------------
+        // CENTER 
         JPanel centerPanel = new JPanel();
         centerPanel.setOpaque(false);
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
@@ -76,7 +76,7 @@ public class LoginApp extends JFrame {
 
         centerPanel.add(Box.createVerticalStrut(25));
 
-        // ---------------- USERNAME ----------------
+        // USERNAME 
         JLabel nameLabel = new JLabel("Username");
         nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         nameLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
@@ -92,7 +92,7 @@ public class LoginApp extends JFrame {
 
         centerPanel.add(Box.createVerticalStrut(15));
 
-        // ---------------- PASSWORD ----------------
+        // PASSWORD 
         JLabel passLabel = new JLabel("Password");
         passLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         passLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
@@ -108,17 +108,17 @@ public class LoginApp extends JFrame {
 
         centerPanel.add(Box.createVerticalStrut(20));
 
-        // ---------------- LOGIN BUTTON ----------------
+        // LOGIN BUTTON
         loginButton = new JButton("Log In");
         styleButton(loginButton);
         loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         centerPanel.add(loginButton);
         centerPanel.add(Box.createVerticalStrut(15));
 
-        // NEW: Change Password button
+        // CHANGE PASSWORD BUTTON
         changePasswordButton = new JButton("Change Password");
         styleButton(changePasswordButton);
-        changePasswordButton.setBackground(new Color(100, 100, 140)); // slight difference
+        changePasswordButton.setBackground(new Color(100, 100, 140)); 
         changePasswordButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         centerPanel.add(changePasswordButton);
 
@@ -128,7 +128,6 @@ public class LoginApp extends JFrame {
         mainPanel.add(centerPanel, BorderLayout.CENTER);
         add(mainPanel);
 
-        // ---------------- ACTION LISTENER ----------------
         loginButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
 
@@ -183,16 +182,13 @@ public class LoginApp extends JFrame {
         });
 
         changePasswordButton.addActionListener(e -> {
-            new ChangePassword(); // Opens your change password screen
-            dispose(); // Close login window (optional)
+            new ChangePassword(); 
+            dispose();
         });
 
 
         setVisible(true);
     }
-
-
-    // -------- Styling helpers --------
 
     private void styleTextField(JTextField field) {
         field.setMaximumSize(new Dimension(300, 40));
@@ -215,7 +211,6 @@ public class LoginApp extends JFrame {
     }
 
     public static void main(String[] args) {
-        // FlatLaf theme
         FlatLightLaf.setup();
         SwingUtilities.invokeLater(() -> new LoginApp());
     }

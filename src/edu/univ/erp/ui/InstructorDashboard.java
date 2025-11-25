@@ -14,9 +14,6 @@ public class InstructorDashboard extends JFrame {
 
     private CardLayout cards = new CardLayout();
     private JPanel cardPanel;
-
-    // InstructorCommands must be updated to accept instructorId on method calls,
-    // as Code 2 of InstructorCommands did not have a constructor.
     private final InstructorCommands instructor = new InstructorCommands();
 
     private final int instructorId;
@@ -33,7 +30,7 @@ public class InstructorDashboard extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // --- Sidebar ---
+        // Sidebar 
         JPanel sidebar = new JPanel(new GridLayout(0, 1, 10, 10));
         sidebar.setBackground(new Color(31, 67, 59));
         sidebar.setBorder(BorderFactory.createEmptyBorder(20, 12, 20, 12));
@@ -54,7 +51,6 @@ public class InstructorDashboard extends JFrame {
             sidebar.add(b);
         }
 
-        // --- Card Panel ---
         cardPanel = new JPanel(cards);
 
         cardPanel.add(makeHomePanel(), "Home");
@@ -71,7 +67,7 @@ public class InstructorDashboard extends JFrame {
         setVisible(true);
     }
 
-    // --- UTILITY: Styling ---
+    // Styling
     private void styleSidebarButton(JButton b) {
         b.setBackground(new Color(60, 135, 110));
         b.setForeground(Color.WHITE);
@@ -80,7 +76,7 @@ public class InstructorDashboard extends JFrame {
         b.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
     }
 
-    // --- UTILITY: Top Panel for Tabs ---
+    // Top Panel
     private JPanel makeTopPanel(String titleText) {
         JPanel top = new JPanel(new BorderLayout());
         top.setBorder(new EmptyBorder(12, 12, 12, 12));
@@ -94,7 +90,7 @@ public class InstructorDashboard extends JFrame {
         logout.setForeground(Color.WHITE);
         logout.addActionListener(e -> {
             dispose();
-            SwingUtilities.invokeLater(LoginApp::new); // Assuming LoginApp exists
+            SwingUtilities.invokeLater(LoginApp::new); 
         });
 
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
@@ -107,36 +103,31 @@ public class InstructorDashboard extends JFrame {
         return top;
     }
 
-    // ----------------------------------------------------------
     // HOME PAGE
-    // ----------------------------------------------------------
     private JPanel makeHomePanel() {
 
         JPanel home = new JPanel(new BorderLayout());
         home.setBackground(new Color(245, 247, 246));
 
-        // top bar (customized for Home)
         JPanel top = makeTopPanel("Welcome Instructor "+ name.toUpperCase());
         top.getComponent(0).setFont(new Font("SansSerif", Font.BOLD, 26)); // set larger font for title
         home.add(top, BorderLayout.NORTH);
 
-        // center
         JPanel center = new JPanel();
         center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
 
         center.setBorder(new EmptyBorder(20, 40, 40, 40));
         center.setBackground(new Color(245, 247, 246));
 
-        // --- Maintenance Mode Banner ---
-        // --- Maintenance Mode Banner with Animation ---
+        // Maintenance Mode
         MaintenanceMode mm = new MaintenanceMode();
         if (mm.isEnabled()) {
 
             JPanel warnPanel = new JPanel(new BorderLayout());
-            warnPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25)); // ← half height
+            warnPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25)); 
             warnPanel.setOpaque(true);
             warnPanel.setBackground(new Color(255, 200, 200));
-            warnPanel.setBorder(new EmptyBorder(4, 10, 4, 10)); // tighten padding
+            warnPanel.setBorder(new EmptyBorder(4, 10, 4, 10)); 
 
             JLabel warn = new JLabel("⚠ The system is currently under Maintenance Mode.", SwingConstants.CENTER);
             warn.setFont(new Font("SansSerif", Font.BOLD, 16));
@@ -144,10 +135,9 @@ public class InstructorDashboard extends JFrame {
 
             warnPanel.add(warn, BorderLayout.CENTER);
 
-            // --- Animation (Blink Effect Every 700 ms) ---
             Timer blink = new Timer(700, ev -> {
                 if (warn.getForeground().equals(Color.RED))
-                    warn.setForeground(new Color(180, 0, 0));   // darker red
+                    warn.setForeground(new Color(180, 0, 0));   
                 else
                     warn.setForeground(Color.RED);
             });
@@ -156,8 +146,6 @@ public class InstructorDashboard extends JFrame {
             center.add(warnPanel, BorderLayout.NORTH);
         }
 
-        
-        // stats row
         JPanel statsRow = new JPanel(new GridLayout(1, 2, 20, 20));
         statsRow.setOpaque(false);
 
@@ -166,12 +154,11 @@ public class InstructorDashboard extends JFrame {
 
         center.add(statsRow, BorderLayout.NORTH);
 
-        // lower (Announcements + Quick Actions)
         JPanel lower = new JPanel(new GridLayout(1, 2, 20, 20));
         lower.setOpaque(false);
         lower.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
 
-        // -----------  Announcements Panel ----------------
+        // Announcements 
         JPanel ann = new JPanel(new BorderLayout());
         ann.setBackground(Color.WHITE);
         ann.setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -195,7 +182,7 @@ public class InstructorDashboard extends JFrame {
         ann.add(msgs, BorderLayout.CENTER);
 
 
-        // -----------  Quick Actions Panel ----------------
+        // Quick Actions
         JPanel actions = new JPanel();
         actions.setLayout(new BoxLayout(actions, BoxLayout.Y_AXIS));
         actions.setBackground(Color.WHITE);
@@ -229,8 +216,8 @@ public class InstructorDashboard extends JFrame {
         actions.add(Box.createVerticalStrut(10));
         actions.add(b5);
 
-        lower.add(ann); // Add announcements back
-        lower.add(actions); // Add actions
+        lower.add(ann);
+        lower.add(actions);
 
         center.add(lower, BorderLayout.CENTER);
         home.add(center, BorderLayout.CENTER);
@@ -238,7 +225,7 @@ public class InstructorDashboard extends JFrame {
         return home;
     }
 
-    // --- UTILITY: Stat Card ---
+    // Stats
     private JPanel makeStatCard(String title, int count) {
         JPanel card = new JPanel();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
@@ -263,7 +250,6 @@ public class InstructorDashboard extends JFrame {
         return card;
     }
 
-    // --- DATA FETCH: Stat Counts ---
     private int getInstructorSectionCount() {
         String sql = "SELECT COUNT(*) FROM sections WHERE instructor_id = ?";
         try (Connection conn = DBConnection.getErpConnection();
@@ -296,9 +282,7 @@ public class InstructorDashboard extends JFrame {
         return 0;
     }
 
-    // ----------------------------------------------------------
     // MY SECTIONS PANEL
-    // ----------------------------------------------------------
     private JPanel makeMySectionsPanel() {
         JPanel p = new JPanel(new BorderLayout());
         JPanel top = makeTopPanel("My Sections");
@@ -306,22 +290,18 @@ public class InstructorDashboard extends JFrame {
         JButton refresh = new JButton("Refresh");
         refresh.addActionListener(e -> loadSectionsTable(p));
 
-        // Add refresh button to the right side of the top panel
+        // Refresh button
         ((JPanel) top.getComponent(1)).add(refresh);
         p.add(top, BorderLayout.NORTH);
 
-        // --- PANEL TO HOLD BOTH TABLES ---
         JPanel centerPanel = new JPanel(new GridLayout(2, 1));
         p.add(centerPanel, BorderLayout.CENTER);
 
-
-        // Initial setup for the table
         loadSectionsTable(p);
 
         return p;
     }
 
-    // UTILITY: Loads data for My Sections and updates the panel
     private void loadSectionsTable(JPanel panel) {
         try {
             String sql = "SELECT section_id, course_id, day_time, room, capacity, semester, year " +
@@ -335,9 +315,7 @@ public class InstructorDashboard extends JFrame {
                     JTable table = TableUtils.buildStyledTable(rs);
                     JScrollPane newScroll = new JScrollPane(table);
 
-                    // Remove existing table component if present
-                    // Place SECTIONS table in upper grid cell
-                    JPanel centerPanel = (JPanel) panel.getComponent(1); // panel added earlier
+                    JPanel centerPanel = (JPanel) panel.getComponent(1); 
                     Component oldTop = centerPanel.getComponentCount() > 0 ? centerPanel.getComponent(0) : null;
                     if (oldTop != null) centerPanel.remove(oldTop);
 
@@ -345,12 +323,10 @@ public class InstructorDashboard extends JFrame {
                     centerPanel.revalidate();
                     centerPanel.repaint();
 
-                    // ALSO load the students under these sections
                     loadEnrolledStudentsTable(centerPanel);
                 }
             }
         } catch (Exception e) {
-            // Display empty table or error message
             JTable emptyTable = new JTable(new javax.swing.table.DefaultTableModel());
             JScrollPane emptyScroll = new JScrollPane(emptyTable);
 
@@ -364,9 +340,6 @@ public class InstructorDashboard extends JFrame {
         }
     }
 
-    // ---------------------------------------------------------
-    // NEW: LOAD ENROLLED STUDENTS TABLE (with heading)
-    // ---------------------------------------------------------
     private void loadEnrolledStudentsTable(JPanel centerPanel) {
 
         try {
@@ -388,11 +361,8 @@ public class InstructorDashboard extends JFrame {
                     JTable table = TableUtils.buildStyledTable(rs);
                     JScrollPane scroll = new JScrollPane(table);
 
-                    // ------------------------------
-                    // WRAP TABLE WITH HEADING PANEL
-                    // ------------------------------
                     JPanel wrapper = new JPanel(new BorderLayout());
-                    wrapper.setBorder(new EmptyBorder(20, 10, 10, 10)); // pushes table LOWER
+                    wrapper.setBorder(new EmptyBorder(20, 10, 10, 10));
 
                     JLabel title = new JLabel("Enrolled Students");
                     title.setFont(new Font("SansSerif", Font.BOLD, 16));
@@ -401,9 +371,6 @@ public class InstructorDashboard extends JFrame {
                     wrapper.add(title, BorderLayout.NORTH);
                     wrapper.add(scroll, BorderLayout.CENTER);
 
-                    // ------------------------------
-                    // PLACE THIS WRAPPER IN LOWER SLOT
-                    // ------------------------------
                     if (centerPanel.getComponentCount() > 1)
                         centerPanel.remove(1);
 
@@ -417,11 +384,7 @@ public class InstructorDashboard extends JFrame {
         }
     }
 
-
-
-    // ----------------------------------------------------------
-    // ENTER SCORES PANEL
-    // ----------------------------------------------------------
+    // SCORES
     private JPanel makeEnterScoresPanel() {
         JPanel p = new JPanel(new BorderLayout());
         p.add(makeTopPanel("Enter Scores"), BorderLayout.NORTH);
@@ -447,7 +410,6 @@ public class InstructorDashboard extends JFrame {
 
         save.addActionListener(e -> {
             try {
-                // --- Maintenance Check for Save Score ---
                 MaintenanceMode mm = new MaintenanceMode();
                 if (mm.isEnabled()) {
                     JOptionPane.showMessageDialog(this, "System under maintenance.");
@@ -473,9 +435,7 @@ public class InstructorDashboard extends JFrame {
         return p;
     }
 
-    // ----------------------------------------------------------
     // FINAL GRADES PANEL
-    // ----------------------------------------------------------
     private JPanel makeFinalGradesPanel() {
         JPanel p = new JPanel(new BorderLayout());
         JPanel top = makeTopPanel("Final Grades");
@@ -490,7 +450,6 @@ public class InstructorDashboard extends JFrame {
         return p;
     }
 
-    // UTILITY: Loads data for Final Grades and updates the panel
     private void loadFinalGradesTable(JPanel panel) {
         javax.swing.table.DefaultTableModel model =
             new javax.swing.table.DefaultTableModel(
@@ -504,7 +463,6 @@ public class InstructorDashboard extends JFrame {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     int sec = rs.getInt(1);
-                    // InstructorCommands does not have an ID state, relying on its internal check
                     Map<Integer, Double> grades = instructor.computeFinalGrades(sec);
 
                     for (var entry : grades.entrySet()) {
@@ -532,10 +490,7 @@ public class InstructorDashboard extends JFrame {
         panel.repaint();
     }
 
-
-    // ----------------------------------------------------------
-    // CLASS STATS PANEL
-    // ----------------------------------------------------------
+    // CLASS STATS
     private JPanel makeStatsPanel() {
         JPanel p = new JPanel(new BorderLayout());
         JPanel top = makeTopPanel("Class Stats");
@@ -550,7 +505,6 @@ public class InstructorDashboard extends JFrame {
         return p;
     }
 
-    // UTILITY: Loads data for Stats and updates the panel
     private void loadStatsTable(JPanel panel) {
         javax.swing.table.DefaultTableModel model =
             new javax.swing.table.DefaultTableModel(
@@ -592,9 +546,7 @@ public class InstructorDashboard extends JFrame {
         panel.repaint();
     }
 
-    // ----------------------------------------------------------
     // EDIT SECTION PANEL
-    // ----------------------------------------------------------
     private JPanel makeEditSectionPanel() {
         JPanel p = new JPanel(new BorderLayout());
         p.add(makeTopPanel("Edit Section"), BorderLayout.NORTH);
@@ -616,7 +568,6 @@ public class InstructorDashboard extends JFrame {
 
         update.addActionListener(e -> {
             try {
-                // --- Maintenance Check for Edit Section ---
                 MaintenanceMode mm = new MaintenanceMode();
                 if (mm.isEnabled()) {
                     JOptionPane.showMessageDialog(this, "System under maintenance. Cannot modify section data.");
@@ -624,11 +575,8 @@ public class InstructorDashboard extends JFrame {
                 }
                 
                 String field = fieldBox.getSelectedItem().toString();
-
-                // Smartly determine if the value is an Integer or String
                 Object val;
 
-                // If editing capacity → validate it
                 if (field.equals("capacity")) {
 
                     int cap;
@@ -647,7 +595,6 @@ public class InstructorDashboard extends JFrame {
                     val = cap;
                 } 
                 else {
-                    // day_time is a string
                     val = value.getText().trim();
                 }
 
@@ -663,7 +610,6 @@ public class InstructorDashboard extends JFrame {
         return p;
     }
 
-    // --- DATA FETCH: Instructor ID ---
     private int getInstructorIdByUsername(String username) {
         String sql = "SELECT i.user_id FROM instructors i JOIN auth_db.users u ON i.user_id = u.id WHERE u.username = ?";
         try (Connection conn = DBConnection.getErpConnection();
@@ -679,7 +625,6 @@ public class InstructorDashboard extends JFrame {
         return -1;
     }
 
-    // --- UTILITY: Card Switcher ---
     private void showCard(String name) {
         cards.show(cardPanel, name);
     }

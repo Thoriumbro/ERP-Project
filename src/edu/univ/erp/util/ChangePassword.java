@@ -130,7 +130,6 @@ public class ChangePassword extends JFrame {
                 return;
             }
 
-            // Update password
             String newHash = enc.encrypt(newPass);
             String updateSql = "UPDATE users SET password=? WHERE username=?";
             PreparedStatement updatePS = conn.prepareStatement(updateSql);
