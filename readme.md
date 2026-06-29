@@ -106,7 +106,7 @@ This separation improves modularity and keeps authentication independent from ac
 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/ERP-Management-System.git
+git clone https://github.com/Thoriumbro/ERP-Project.git
 ```
 
 2. Import the project into IntelliJ IDEA.
